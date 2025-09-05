@@ -1,6 +1,7 @@
 import re
 import pytest
 from playwright.sync_api import Page, expect
+from datetime import datetime
 
 
 def test_example(page: Page) -> None:
@@ -78,13 +79,29 @@ def test_example(page: Page) -> None:
     page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").check()
     page1.get_by_role("button", name="Submit Quote Request").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl02_lblQuote1PaymentOption").get_by_text("1st Payment Due:").click()
+
+    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header").inner_text()
+    print(f'Homeowners Product Option: {ProductName}')
+
+    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
+    print(f'Full Pay Option: {FullPay}')
+
+    ThreePayFirstInstallment = page1.locator(    
+        '#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
+    ).text_content().strip()
+
+    match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
+
+    if match:
+        print(f"3 Pay First Installment:\n{match.group().strip()}\n")
+    else:
+        print("No dollar amount found in:", ThreePayFirstInstallment)
+
     page1.get_by_role("button", name="Continue to Bind Coverage").click()
     page1.locator("#chkPopInConfirmation").check()
     page1.get_by_role("button", name="Continue", exact=True).click()
-    page1.get_by_role("textbox", name="mm/dd/yyyy").click()
-    page1.get_by_title("Wednesday, August 27,").click()
+    today = datetime.today().strftime('%m/%d/%Y')
+    page1.get_by_role("textbox", name="mm/dd/yyyy").fill(today)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")
     page1.get_by_role("button", name="Request to Bind").click()

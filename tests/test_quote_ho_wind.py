@@ -88,9 +88,6 @@ def test_example(page: Page) -> None:
     FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
     print(f'Full Pay Option: {FullPay}')
 
-    # ThreePay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption").inner_text()
-    # print(f'3 Pay Option: {ThreePay}')
-
     ThreePayFirstInstallment = page1.locator(    
         '#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
     ).text_content().strip()
