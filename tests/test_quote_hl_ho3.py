@@ -1,4 +1,3 @@
-from pydoc import text
 import re
 import pytest
 from playwright.sync_api import Page, expect
@@ -8,22 +7,22 @@ from datetime import datetime
 def test_example(page: Page) -> None:
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
-    page.get_by_role("textbox", name="Policyholder Email or Agent").fill("brk99102")
+    page.get_by_role("textbox", name="Policyholder Email or Agent").fill("icmhull")
     page.get_by_role("textbox", name="Password").click()
     page.get_by_role("textbox", name="Password").fill("Password1")
     page.get_by_role("button", name="Log In", exact=True).click()
     page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
-    page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
+    # page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
     with page.expect_popup() as page1_info:
-        page.get_by_role("button", name="OK").click()
+        page.wait_for_timeout(100)
     page1 = page1_info.value
     # page1.wait_for_timeout(6000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
-    page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially("6903 Brescia Way, Orlando, FL 32819")
+    page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially("3996 Stonesthrow Ct, Naples, FL 34109")
     page1.wait_for_timeout(1000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
     page1.get_by_role("button", name="Next -->").click()
-    page1.get_by_role("checkbox", name="HO-3").uncheck()
+    page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill("800,000")
     page1.get_by_role("button", name="Next -->").click()
@@ -34,12 +33,12 @@ def test_example(page: Page) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlGatedGuardedCommunity").select_option("False")
+    page1.locator("#ddlSwimmingPool").select_option("No Swimming Pool")
     page1.get_by_role("button", name="Next -->").click()
     page1.locator("#ddlPolybutylenePipes").select_option("False")
     page1.locator("#ddlAutomaticWaterShutoffValve").select_option("False")
     page1.get_by_role("button", name="Next -->").click()
     page1.get_by_role("button", name="Next -->").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press("CapsLock")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press_sequentially("ICMTEST")
@@ -106,7 +105,6 @@ def test_example(page: Page) -> None:
     page1.get_by_role("textbox", name="mm/dd/yyyy").fill(today)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_chkNonCancellation").check()
     page1.get_by_role("button", name="Request to Bind").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue").click()
     page1.get_by_text("Applicant", exact=True).click()
