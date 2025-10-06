@@ -79,7 +79,7 @@ def test_example(page: Page) -> None:
     page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").check()
     page1.get_by_role("button", name="Submit Quote Request").click()
-
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header", timeout=30000)
     ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header").inner_text()
     print(f'Homeowners Product Option: {ProductName}')
 
@@ -105,6 +105,7 @@ def test_example(page: Page) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")
     page1.get_by_role("button", name="Request to Bind").click()
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue", timeout=30000)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue").click()
     page1.get_by_text("Applicant", exact=True).click()
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblPaymentPlan").click()
