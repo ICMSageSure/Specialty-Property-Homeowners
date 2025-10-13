@@ -1,0 +1,143 @@
+import re
+import pytest
+from playwright.sync_api import Page, expect
+from datetime import datetime
+
+
+def test_example(page: Page) -> None:
+    page.goto("https://tst.mygeosource.com/")
+    page.get_by_role("textbox", name="Policyholder Email or Agent").click()
+    page.get_by_role("textbox", name="Policyholder Email or Agent").fill("ICMHULL")
+    page.get_by_role("textbox", name="Password").click()
+    page.get_by_role("textbox", name="Password").fill("Password1")
+    page.get_by_role("button", name="Log In", exact=True).click()
+    page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
+    # page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
+    with page.expect_popup() as page1_info:
+        page.wait_for_timeout(1)
+    page1 = page1_info.value
+    # page1.wait_for_timeout(6000)
+    page1.locator("#RadAutoCompleteBoxGeo_Input").click()
+    page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially("1461 75th Cir NE, Saint Petersburg, FL 33702")
+    page1.wait_for_timeout(1000)
+    page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
+    page1.get_by_role("button", name="Next -->").click()
+
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Vacant")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacantMoreThan90Days").select_option("No")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtPurchaseDateMonth").fill("01")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtPurchaseDateDay").fill("01")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtPurchaseDateYear").fill("2020")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtExpectedOccupancyDateMonth").fill("12")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtExpectedOccupancyDateDay").fill("31")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtExpectedOccupancyDateYear").fill("2024")
+
+    page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+    page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+    page1.locator("#txtRequestedHomeownersCoverageALimit").fill("600,000")
+    page1.get_by_role("button", name="Next -->").click()
+
+    page1.locator("#ddlConstructionType").select_option("FR")
+    page1.locator("#ddlSidingTypeDominant").select_option("ST")
+    page1.locator("#ddlRestrictedRoofShapes").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").fill("0")
+    page1.get_by_role("button", name="Next -->").click()
+
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlGatedGuardedCommunity").select_option("False")
+    page1.locator("#ddlSwimmingPool").select_option("No Swimming Pool")
+    page1.get_by_role("button", name="Next -->").click()
+
+    page1.locator("#ddlPolybutylenePipes").select_option("False")
+    page1.locator("#ddlAutomaticWaterShutoffValve").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWillRenovate").select_option("No")
+    page1.get_by_role("button", name="Next -->").click()
+
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWindMitigationVerificationInspection").select_option("False")
+    page1.get_by_role("button", name="Next -->").click()
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press_sequentially("ICMTEST")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").click()
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").press_sequentially("TESTER")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").click()
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").press_sequentially("01")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBDay").press_sequentially("01")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBYear").press_sequentially("1998")
+    page1.locator("input[name=\"ctl00\\$ContentPlaceHolder1\\$ctl05\\$txtSSN1\"]").press_sequentially("123")
+    page1.locator("input[name=\"ctl00\\$ContentPlaceHolder1\\$ctl05\\$txtSSN2\"]").press_sequentially("11")
+    page1.locator("input[name=\"ctl00\\$ContentPlaceHolder1\\$ctl05\\$txtSSN3\"]").press_sequentially("1122")
+    page1.get_by_role("checkbox", name="Is Mailing Address the same").check()
+    page1.locator("#ddlPriorHomeownersInsurance").select_option("False")
+    page1.wait_for_timeout(3000)
+    page1.locator("#ddlPriorHomeownersInsurance").select_option("False")
+    page1.get_by_role("button", name="Next -->").click()
+
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl00_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl01_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl02_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl03_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl04_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl05_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl06_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl07_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl08_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl09_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl10_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl11_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl12_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl13_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl14_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl15_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl16_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl17_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl18_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl19_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl20_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions").select_option("False")
+    page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").check()
+    page1.get_by_role("button", name="Submit Quote Request").click()
+
+
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header")
+    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header").inner_text()
+    print(f'Homeowners Product Option: {ProductName}')
+    QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Number").inner_text()
+    print(f'Quote Number: {QuoteNumber}')
+    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
+    print(f'Full Pay Option: {FullPay}')
+
+    ThreePayFirstInstallment = page1.locator(    
+        '#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
+    ).text_content().strip()
+
+    match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
+
+    if match:
+        print(f"3 Pay First Installment:\n{match.group().strip()}\n")
+    else:
+        print("No dollar amount found in:", ThreePayFirstInstallment)
+
+    page1.get_by_role("button", name="Continue to Bind Coverage").click()
+    page1.locator("#chkPopInConfirmation").check()
+    page1.get_by_role("button", name="Continue", exact=True).click()
+
+    today = datetime.today().strftime('%m/%d/%Y')
+    page1.get_by_role("textbox", name="mm/dd/yyyy").fill(today)
+    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
+    page1.locator("#ddlPaymentPlan1").select_option("0")
+    page1.get_by_role("button", name="Request to Bind").click()
+    
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue")
+    BinderNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBinderNumber").inner_text()
+    print(f'Binder Number: {BinderNumber}')
+    BillTo = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBillTo").inner_text()
+    print(f'Bill To: {BillTo}')
+    PaymentPlan = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblPaymentPlan").inner_text()
+    print(f'Payment Plan: {PaymentPlan}')
+    EffectiveDate = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblEffectiveDate").inner_text()
+    print(f'Effective Date: {EffectiveDate}')
+    AmountDueNow = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue").inner_text()
+    print(f'Amount Due Now: {AmountDueNow}')
+    page1.wait_for_timeout(5000)
