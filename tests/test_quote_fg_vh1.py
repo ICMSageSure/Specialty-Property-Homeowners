@@ -4,7 +4,7 @@ from playwright.sync_api import Page, expect
 from datetime import datetime
 
 
-def test_example(page: Page) -> None:
+def test_quote_fg_vh1(page: Page) -> None:
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill("brk99102")
@@ -40,22 +40,33 @@ def test_example(page: Page) -> None:
     page1.locator("#ddlConstructionType").select_option("FR")
     page1.locator("#ddlSidingTypeDominant").select_option("ST")
     page1.locator("#ddlRestrictedRoofShapes").select_option("False")
+    page1.locator("#ddlRoofMaterialDominant").select_option("Architectural Shingles")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").fill("0")
     page1.get_by_role("button", name="Next -->").click()
+
 
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlGatedGuardedCommunity").select_option("False")
-    page1.locator("#ddlSwimmingPool").select_option("No Swimming Pool")
+    if page1.locator("#ddlSwimmingPool").is_visible():
+        page1.locator("#ddlSwimmingPool").select_option(label="No Swimming Pool")
     page1.get_by_role("button", name="Next -->").click()
+
 
     page1.locator("#ddlPolybutylenePipes").select_option("False")
     page1.locator("#ddlAutomaticWaterShutoffValve").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWillRenovate").select_option("No")
     page1.get_by_role("button", name="Next -->").click()
 
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWindMitigationVerificationInspection").select_option("False")
+
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWindMitigationVerificationInspection").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWindMitigationVerificationInspection").select_option("Yes")
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtWindMitigationVerificationInspectionMonth").fill("01")
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtWindMitigationVerificationInspectionDay").fill("01")
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtWindMitigationVerificationInspectionYear").fill("2022")
+        page1.locator("#fileWindMitigationVerificationInspectionForm").set_input_files("C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/uploads/testfile.pdf")
     page1.get_by_role("button", name="Next -->").click()
+
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press_sequentially("ICMTEST")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").click()
@@ -96,7 +107,11 @@ def test_example(page: Page) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl20_ddlQuestions").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions").select_option("False")
     page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").check()
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkTenantLiability").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").check()
+    page1.get_by_role("button", name="Next -->").click()
+
+
     page1.get_by_role("button", name="Submit Quote Request").click()
 
 

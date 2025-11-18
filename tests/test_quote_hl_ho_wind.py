@@ -34,7 +34,8 @@ def test_example(page: Page) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlGatedGuardedCommunity").select_option("False")
-    page1.locator("#ddlSwimmingPool").select_option("No Swimming Pool")
+    if page1.locator("#ddlSwimmingPool").is_visible():
+        page1.locator("#ddlSwimmingPool").select_option(label="No Swimming Pool")
     page1.get_by_role("button", name="Next -->").click()
     page1.locator("#ddlPolybutylenePipes").select_option("False")
     page1.locator("#ddlAutomaticWaterShutoffValve").select_option("False")
@@ -111,9 +112,15 @@ def test_example(page: Page) -> None:
     page1.get_by_role("button", name="Request to Bind").click()
 
 
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue", timeout=30000)
-    BinderNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBinderNumber").inner_text()
-    print(f'Binder Number: {BinderNumber}')
+    binder_number_locator = page1.locator("tr:has(td.label:has-text('Record Number:')) td.SingleColumn1")
+    page1.wait_for_selector(binder_number_locator)
+    text = binder_number_locator.inner_text().strip()
+    match = re.search(r"(GH\d+)", text)
+    binder_number = match.group(1) if match else None
+    print(f'Binder Number: {binder_number}')
+
+    bill_to_locator = page1.locator
+    
     BillTo = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBillTo").inner_text()
     print(f'Bill To: {BillTo}')
     PaymentPlan = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblPaymentPlan").inner_text()

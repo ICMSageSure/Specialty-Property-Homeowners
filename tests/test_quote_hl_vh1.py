@@ -4,7 +4,7 @@ from playwright.sync_api import Page, expect
 from datetime import datetime
 
 
-def test_example(page: Page) -> None:
+def test_quote_hl_ho_wind(page: Page) -> None:
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill("ICMHULL")
@@ -46,7 +46,8 @@ def test_example(page: Page) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlGatedGuardedCommunity").select_option("False")
-    page1.locator("#ddlSwimmingPool").select_option("No Swimming Pool")
+    if page1.locator("#ddlSwimmingPool").is_visible():
+        page1.locator("#ddlSwimmingPool").select_option(label="No Swimming Pool")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ddlPolybutylenePipes").select_option("False")
