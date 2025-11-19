@@ -4,7 +4,7 @@ from playwright.sync_api import Page, expect
 from datetime import datetime
 
 
-def test_example(page: Page) -> None:
+def test_quote_hl_ho3t(page: Page) -> None:
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill("ICMHULL")
@@ -115,15 +115,30 @@ def test_example(page: Page) -> None:
     page1.locator("#ddlPaymentPlan1").select_option("0")
     page1.get_by_role("button", name="Request to Bind").click()
     
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue")
-    BinderNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBinderNumber").inner_text()
-    print(f'Binder Number: {BinderNumber}')
-    BillTo = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBillTo").inner_text()
-    print(f'Bill To: {BillTo}')
-    PaymentPlan = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblPaymentPlan").inner_text()
-    print(f'Payment Plan: {PaymentPlan}')
-    EffectiveDate = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblEffectiveDate").inner_text()
-    print(f'Effective Date: {EffectiveDate}')
-    AmountDueNow = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue").inner_text()
-    print(f'Amount Due Now: {AmountDueNow}')
-    page1.wait_for_timeout(5000)
+    binder_number_locator = page1.locator("td.label.Bold:has-text('Record Number:') + td.SingleColumn1")
+    binder_number_locator.wait_for(state="visible")
+    binder_number_text = binder_number_locator.inner_text().strip()
+    binder_number_match = re.search(r"(GH\d+)", binder_number_text)
+    binder_number = binder_number_match.group(1) if binder_number_match else None
+    print(f'Binder Number: {binder_number}')
+
+
+    bill_to_locator = page1.locator("td.label.Bold:has-text('Bill To:') + td.SingleColumn1")
+    bill_to_text = bill_to_locator.inner_text().strip()
+    print(f'Bill To: {bill_to_text}')
+
+    payment_plan_locator = page1.locator("td.label.Bold:has-text('Payment Plan:') + td.SingleColumn1")
+    payment_plan_text = payment_plan_locator.inner_text().strip()
+    print(f'Payment Plan: {payment_plan_text}')
+
+    effective_date_locator = page1.locator("td.label.Bold:has-text('Effective Date:') + td.SingleColumn1")
+    effective_date_text = effective_date_locator.inner_text().strip()
+    print(f'Effective Date: {effective_date_text}')
+
+    amount_due_locator = page1.locator("td.label.Bold:has-text('Amount Due:') + td.SingleColumn1")
+    amount_due_text = amount_due_locator.inner_text().strip()
+    print(f'Amount Due Now: {amount_due_text}')
+
+    due_date_locator = page1.locator("td.label.Bold:has-text('Due Date:') + td.SingleColumn1")
+    due_date_text = due_date_locator.inner_text().strip()   
+    print(f'Due Date: {due_date_text}')
