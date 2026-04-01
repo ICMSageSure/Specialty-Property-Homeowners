@@ -94,6 +94,8 @@ def test_quote_hl_vh1(page: Page) -> None:
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").select_option("1")
 
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").check()
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").uncheck()
     page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
