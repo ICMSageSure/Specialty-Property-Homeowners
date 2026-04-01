@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \":*)",
+      "Bash(python -m pytest tests/test_quote_fg_ho3t.py tests/test_quote_fg_ho_wind.py tests/test_quote_hl_vh1.py tests/test_quote_hl_vh2.py -v -s)",
+      "Bash(python -m pytest tests/test_quote_fg_ho3t.py tests/test_quote_fg_ho_wind.py tests/test_quote_hl_vh2.py -v -s)"
+    ]
+  }
+}
