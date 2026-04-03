@@ -61,7 +61,7 @@ FL_ADDRESSES = [
 ]
 
 def test_quote_hl_vh2(page: Page) -> None:
-    username = "ICMHULL"
+    username = "tsicortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "600,000"
 
@@ -69,12 +69,20 @@ def test_quote_hl_vh2(page: Page) -> None:
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill(username)
     page.get_by_role("textbox", name="Password").click()
-    page.get_by_role("textbox", name="Password").fill("Password1")
+    page.get_by_role("textbox", name="Password").fill(os.environ["INTERNAL_PASSWORD"])
     page.get_by_role("button", name="Log In", exact=True).click()
     page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
+    page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
     with page.expect_popup() as page1_info:
-        page.wait_for_timeout(1)
+        page.get_by_role("button", name="OK").click()
     page1 = page1_info.value
+    page1.wait_for_selector("#ctl00_WelcomeUserControl_ddlWholesaler", timeout=30000)
+    page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option("HULL001")
+    page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").fill("10506")
+    page1.locator("#ctl00_WelcomeUserControl_btnUpdateQuotingAs").click()
+    page1.wait_for_selector("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl28_btnId", timeout=30000)
+    page1.locator("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl28_btnId").click()
+    page1.wait_for_timeout(3000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
     page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
     page1.wait_for_timeout(1000)
@@ -178,6 +186,8 @@ def test_quote_hl_vh2(page: Page) -> None:
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").check()
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkFloodExclusion").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkFloodExclusion").check()
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion").check()
     page1.get_by_role("button", name="Next -->").click()
 
     page1.get_by_role("button", name="Submit Quote Request").click()
@@ -210,8 +220,10 @@ def test_quote_hl_vh2(page: Page) -> None:
         page1.get_by_role("button", name="Continue", exact=True).click()
 
     page1.wait_for_selector("input[placeholder='mm/dd/yyyy']", timeout=30000)
-    eff_date = datetime.today().strftime('%m/%d/%Y')
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1", timeout=30000)
+    eff_date = "04/30/2026"
+    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").click()
+    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").press_sequentially(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")
     page1.get_by_role("button", name="Request to Bind").click()
