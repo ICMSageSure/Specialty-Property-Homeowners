@@ -6,7 +6,7 @@ from playwright.sync_api import Page
 from pages.login_page import LoginPage
 from pages.quote_launch_page import QuoteLaunchPage
 from pages.welcome_page import WelcomePage
-from pages.wizard_steps import (
+from pages.steps import (
     AddressStep,
     CoveragesStep,
     PropertyStep,
@@ -59,7 +59,7 @@ def _append_to_xlsx(row: list):
     wb.save(path)
 
 
-def test_fg_ho_wind(page: Page):
+def test_quote_fg_ho_wind_v2(page: Page):
     username = "tsicortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"

@@ -1,7 +1,6 @@
 import re
 import os
 import random
-import pytest
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
 from openpyxl import load_workbook, Workbook
@@ -46,7 +45,7 @@ FL_ADDRESSES = [
     "14688 Indigo Lakes Cir, Naples, FL 34119",
 ]
 
-def test_example(page: Page) -> None:
+def test_quote_fg_ho_wind(page: Page) -> None:
     username = "tsicortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
@@ -83,6 +82,8 @@ def test_example(page: Page) -> None:
     page1.locator("#ddlRestrictedRoofShapes").select_option("False")
     if page1.locator("#ddlRoofShapeDominant").is_visible():
         page1.locator("#ddlRoofShapeDominant").select_option("2")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").fill("0")
     page1.get_by_role("button", name="Next -->").click()
     page1.wait_for_timeout(3000)
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
