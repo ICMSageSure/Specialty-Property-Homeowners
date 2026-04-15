@@ -144,6 +144,7 @@ class QuestionsStep:
         "#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule",
         "#ctl00_ContentPlaceHolder1_ctl05_chkFloodExclusion",
         "#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion",
+        "#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation",
     ]
 
     def __init__(self, page: Page):

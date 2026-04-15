@@ -50,6 +50,7 @@ def test_quote_fg_ho_wind(page: Page) -> None:
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
 
+    # Log in to MGS and start a new quote for FG HO Wind only
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill(username)
@@ -60,6 +61,8 @@ def test_quote_fg_ho_wind(page: Page) -> None:
     page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()
+
+    # Homeowners Quote Window accessed
     page1 = page1_info.value
     page1.wait_for_selector("#ctl00_WelcomeUserControl_ddlWholesaler", timeout=30000)
     page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option("APPUND")
