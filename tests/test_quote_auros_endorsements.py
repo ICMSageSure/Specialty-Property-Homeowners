@@ -58,20 +58,20 @@ MAX_SCENARIO_LABELS = {
 }
 
 _FIELD_DATA_WITH_NAME = {
-    "Name (max 30)":        "A" * 30,
-    "Second Name (max 30)": "B" * 30,
-    "Street (max 30)":      "C" * 30,
-    "City (max 30)":        "D" * 30,
-    "Zip (max 5)":          "12345",
-    "Zip+4 (max 4)":        "6789",
+    "Name (max 30)":        "A" * 29 + "1",
+    "Second Name (max 30)": "B" * 29 + "1",
+    "Street (max 30)":      "C" * 29 + "1",
+    "City (max 30)":        "D" * 29 + "1",
+    "Zip (max 5)":          "12341",
+    "Zip+4 (max 4)":        "6781",
 }
 _FIELD_DATA_NO_NAME = {
     "Name (max 30)":        "",
     "Second Name (max 30)": "",
-    "Street (max 30)":      "C" * 30,
-    "City (max 30)":        "D" * 30,
-    "Zip (max 5)":          "12345",
-    "Zip+4 (max 4)":        "6789",
+    "Street (max 30)":      "C" * 29 + "1",
+    "City (max 30)":        "D" * 29 + "1",
+    "Zip (max 5)":          "12341",
+    "Zip+4 (max 4)":        "6781",
 }
 
 
@@ -288,31 +288,29 @@ def _fill_address_endorsement(page1, idx: str, num_addrs: int = 1, use_max: bool
     All three use ucEndorsement and have Name + SecondName fields.
     use_ho2470=True selects ddlNumberOfAddresses_HO_24_70 (max 4) instead of ddlNumberOfAddresses (max 2)."""
     prefix = f"ctl00_ContentPlaceHolder1_ctl05_rptrEndorsements_{idx}_ucEndorsement"
-    name   = "A" * 30 if use_max else "ICMTEST"
-    second = "B" * 30 if use_max else "TESTER"
-    street = "C" * 30 if use_max else "123 TEST ST"
-    city   = "D" * 30 if use_max else "ORLANDO"
 
     page1.locator(f"#{prefix}_chkInclude").check()
     addr_ddl = f"{prefix}_ddlNumberOfAddresses_HO_24_70" if use_ho2470 else f"{prefix}_ddlNumberOfAddresses"
     page1.locator(f"#{addr_ddl}").select_option(str(num_addrs))
 
     for i in range(1, num_addrs + 1):
-        page1.locator(f"#{prefix}_txtName{i}").fill(name)
-        page1.locator(f"#{prefix}_txtSecondName{i}").fill(second)
-        page1.locator(f"#{prefix}_txtStreet{i}").fill(street)
-        page1.locator(f"#{prefix}_txtCity{i}").fill(city)
+        name_i   = ("A" * 29 + str(i)) if use_max else f"ICMTEST{i}"
+        second_i = ("B" * 29 + str(i)) if use_max else f"TESTER{i}"
+        street_i = ("C" * 29 + str(i)) if use_max else f"123 TEST ST {i}"
+        city_i   = ("D" * 29 + str(i)) if use_max else f"ORLANDO{i}"
+        page1.locator(f"#{prefix}_txtName{i}").fill(name_i)
+        page1.locator(f"#{prefix}_txtSecondName{i}").fill(second_i)
+        page1.locator(f"#{prefix}_txtStreet{i}").fill(street_i)
+        page1.locator(f"#{prefix}_txtCity{i}").fill(city_i)
         page1.locator(f"#{prefix}_ddlState{i}").select_option("FL")
-        page1.locator(f"#{prefix}_txtZip{i}").fill("12345")
-        page1.locator(f"#{prefix}_txtZip4_{i}").fill("6789")
+        page1.locator(f"#{prefix}_txtZip{i}").fill(f"1234{i}")
+        page1.locator(f"#{prefix}_txtZip4_{i}").fill(f"678{i}")
 
 
 def _fill_rented_address_endorsement(page1, num_addrs: int = 1, use_max: bool = False):
     """ctl04=Additional Residence Rented to Others. No Name/SecondName fields.
     This endorsement only has HO-24-70 form; ddlNumberOfAddresses_HO_24_70 is always the visible dropdown."""
     prefix = "ctl00_ContentPlaceHolder1_ctl05_rptrEndorsements_ctl04_ucEndorsement"
-    street = "C" * 30 if use_max else "123 TEST ST"
-    city   = "D" * 30 if use_max else "ORLANDO"
 
     page1.locator(f"#{prefix}_chkInclude").scroll_into_view_if_needed()
     page1.locator(f"#{prefix}_chkInclude").click()
@@ -320,11 +318,13 @@ def _fill_rented_address_endorsement(page1, num_addrs: int = 1, use_max: bool = 
     page1.locator(f"#{prefix}_ddlNumberOfAddresses_HO_24_70").select_option(str(num_addrs))
 
     for i in range(1, num_addrs + 1):
-        page1.locator(f"#{prefix}_txtStreet{i}").fill(street)
-        page1.locator(f"#{prefix}_txtCity{i}").fill(city)
+        street_i = ("C" * 29 + str(i)) if use_max else f"123 TEST ST {i}"
+        city_i   = ("D" * 29 + str(i)) if use_max else f"ORLANDO{i}"
+        page1.locator(f"#{prefix}_txtStreet{i}").fill(street_i)
+        page1.locator(f"#{prefix}_txtCity{i}").fill(city_i)
         page1.locator(f"#{prefix}_ddlState{i}").select_option("FL")
-        page1.locator(f"#{prefix}_txtZip{i}").fill("12345")
-        page1.locator(f"#{prefix}_txtZip4_{i}").fill("6789")
+        page1.locator(f"#{prefix}_txtZip{i}").fill(f"1234{i}")
+        page1.locator(f"#{prefix}_txtZip4_{i}").fill(f"678{i}")
 
 
 def _check_only_endorsement(page1, idx: str):
