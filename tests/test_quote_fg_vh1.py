@@ -61,7 +61,7 @@ FL_ADDRESSES = [
 ]
 
 def test_quote_fg_vh1(page: Page) -> None:
-    username = "tsicortesmarquez@geovera"
+    username = "icortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "600,000"
 
