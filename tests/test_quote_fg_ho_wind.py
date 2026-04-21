@@ -151,6 +151,8 @@ def test_quote_fg_ho_wind(page: Page) -> None:
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkFloodExclusion").check()
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion").check()
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").check()
     page1.get_by_role("button", name="Submit Quote Request").click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header", timeout=30000)

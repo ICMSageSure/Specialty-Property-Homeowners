@@ -146,6 +146,8 @@ def test_example(page: Page) -> None:
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkFloodExclusion").check()
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion").check()
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").check()
     page1.get_by_role("button", name="Submit Quote Request").click()
 
 
