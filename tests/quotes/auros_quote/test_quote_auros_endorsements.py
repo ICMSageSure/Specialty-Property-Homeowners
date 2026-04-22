@@ -6,7 +6,7 @@ from playwright.sync_api import Page
 from openpyxl import load_workbook, Workbook
 
 USERNAME = "icortesmarquez@geovera"
-RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "auros_test_results.xlsx")
+RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros_quote_results.xlsx")
 
 FL_ADDRESSES = [
     "8734 Crestgate Cir, Orlando, FL 32819",

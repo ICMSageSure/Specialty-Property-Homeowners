@@ -1,6 +1,7 @@
 import re
 import os
 import random
+import pytest
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
 from openpyxl import load_workbook, Workbook
@@ -21,36 +22,49 @@ def _append_to_xlsx(row: list):
 
 
 FL_ADDRESSES = [
-    "8734 Crestgate Cir, Orlando, FL 32819",
+    "72 Saint Kitts Cir, Winter Haven, FL 33884",
+    "320 Sea Breeze Dr, Panama City Beach, FL 32413",
+    "15443 Perdido Dr, Orlando, FL 32828",
     "19240 Pepper Grass Dr, Tampa, FL 33647",
-    "8832 Savona Ct, Naples, FL 34119",
-    "1461 75th Cir NE, Saint Petersburg, FL 33702",
-    "8050 Princeton Dr, Naples, FL 34104",
-    "12274 Accipiter Dr, Orlando, FL 32837",
-    "15110 Shearcrest Dr, Lithia, FL 33547",
-    "7733 Belvoir Dr, Orlando, FL 32835",
-    "9426 Meadow Crest Ln, Clermont, FL 34711",
-    "612 Citrus Wood Ln, Valrico, FL 33594",
-    "66 Woodbury Dr, Palm Coast, FL 32164",
-    "1401 Maine Ave, Lynn Haven, FL 32444",
-    "9607 Bahia Rd, Ocala, FL 34472",
-    "2150 NW 74th Ave, Fort Lauderdale, FL 33313",
-    "4364 Tarragon Ave, Middleburg, FL 32068",
-    "3198 Michaels Ct, Green Cove Springs, FL 32043",
-    "3250 Dowitcher Ln, Orange Park, FL 32065",
-    "613 S West St, Green Cove Springs, FL 32043",
-    "8329 Lakemont Dr, Jacksonville, FL 32216",
-    "13501 Princess Kelly Dr, Jacksonville, FL 32225",
-    "6229 Cranberry Ln E, Jacksonville, FL 32244",
-    "14688 Indigo Lakes Cir, Naples, FL 34119",
+    "450 SW 125th Ave, Ocala, FL 34481",
+    "3032 Bridgefield Ct, The Villages, FL 32162",
+    "132 White Blossom Trl, Port Saint Joe, FL 32456",
+    "1285 Azalea Dr, Jacksonville, FL 32205",
+    "912 Anthony St E, Lehigh Acres, FL 33974",
+    "1949 Par Dr, Naples, FL 34120",
+    "1409 Courtside Dr, Panama City Beach, FL 32413",
+    "1408 Courtside Dr, Panama City Beach, FL 32413",
+    "1410 Courtside Dr, Panama City Beach, FL 32413",
+    "125 Lightning Bug Ln, Sopchoppy, FL 32358",
+    "5711 Peach Dr, Milton, FL 32571",
+    "2506 23rd St W, Lehigh Acres, FL 33971",
+    "960 NE Juniper Pl, Jensen Beach, FL 34957",
+    "3408 69th St W, Lehigh Acres, FL 33971",
+    "3419 26th St SW, Lehigh Acres, FL 33976",
+    "3402 72nd St W, Lehigh Acres, FL 33971",
+    "3506 67th St W, Lehigh Acres, FL 33971",
+    "2608 45th St SW, Lehigh Acres, FL 33976",
+    "15738 Switch Cane St, Clermont, FL 34711",
+    "24 Riverwalk Cir, Freeport, FL 32439",
+    "72 Riverwalk Cir, Freeport, FL 32439",
+    "2596 Surfside Blvd, Cape Coral, FL 33914",
+    "6837 Misty View Dr, Jacksonville, FL 32210",
+    "1336 NW 13th Pl, Cape Coral, FL 33993",
+    "10827 Venice Cir, Tampa, FL 33635",
+    "6132 Highwood Park Ln, Naples, FL 34110",
+    "1898 SE Coronado Ln, Stuart, FL 34996",
+    "3319 Clubview Dr, North Fort Myers, FL 33917",
+    "3618 Elm St, Ellenton, FL 34222",
+    "2832 Vintage View Loop, Lakeland, FL 33812",
+    "4734 Amhurst Cir, Destin, FL 32541",
+    "4346 Marine Pkwy, New Port Richey, FL 34652",
 ]
 
-def test_quote_fg_ho_wind(page: Page, snap) -> None:
+def test_quote_fg_vh1(page: Page, snap) -> None:
     username = "icortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
-    coverage_a = "800,000"
+    coverage_a = "600,000"
 
-    # Log in to MGS and start a new quote for FG HO Wind only
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill(username)
@@ -63,8 +77,6 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
     snap(page, "02_product_select")
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()
-
-    # Homeowners Quote Window accessed
     page1 = page1_info.value
     page1.wait_for_selector("#ctl00_WelcomeUserControl_ddlWholesaler", timeout=30000)
     page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option("APPUND")
@@ -80,21 +92,40 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
     snap(page1, "04_address")
     page1.get_by_role("button", name="Next -->").click()
-    page1.get_by_role("checkbox", name="Auros HO-3").uncheck()
-    page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Vacant")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacantMoreThan90Days").select_option("No")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtPurchaseDateMonth").fill("01")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtPurchaseDateDay").fill("01")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtPurchaseDateYear").fill("2020")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtExpectedOccupancyDateMonth").fill("12")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtExpectedOccupancyDateDay").fill("31")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtExpectedOccupancyDateYear").fill("2024")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").select_option("1")
+
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").check()
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
     snap(page1, "05_coverages")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
     page1.get_by_role("button", name="Next -->").click()
+
     page1.locator("#ddlConstructionType").select_option("FR")
     page1.locator("#ddlSidingTypeDominant").select_option("ST")
     page1.locator("#ddlRestrictedRoofShapes").select_option("False")
     if page1.locator("#ddlRoofShapeDominant").is_visible():
         page1.locator("#ddlRoofShapeDominant").select_option("2")
+    page1.locator("#ddlRoofMaterialDominant").select_option("Architectural Shingles")
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").fill("0")
     snap(page1, "06_property")
     page1.get_by_role("button", name="Next -->").click()
+
     page1.wait_for_timeout(3000)
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option("False")
@@ -103,10 +134,13 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
         page1.locator("#ddlSwimmingPool").select_option(label="No Swimming Pool")
     snap(page1, "07_protection")
     page1.get_by_role("button", name="Next -->").click()
+
     page1.locator("#ddlPolybutylenePipes").select_option("False")
     page1.locator("#ddlAutomaticWaterShutoffValve").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWillRenovate").select_option("No")
     snap(page1, "08_plumbing")
     page1.get_by_role("button", name="Next -->").click()
+
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWindMitigationVerificationInspection").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWindMitigationVerificationInspection").select_option("Yes")
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtWindMitigationVerificationInspectionMonth").fill("01")
@@ -115,9 +149,8 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
         page1.locator("#fileWindMitigationVerificationInspectionForm").set_input_files("C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/test_data/testfile.pdf")
     snap(page1, "09_wind_mitigation")
     page1.get_by_role("button", name="Next -->").click()
+
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press("CapsLock")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press_sequentially("ICMTEST")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").press_sequentially("TESTER")
@@ -134,6 +167,7 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
     page1.locator("#ddlPriorHomeownersInsurance").select_option("False")
     snap(page1, "10_applicant")
     page1.get_by_role("button", name="Next -->").click()
+
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl00_ddlQuestions").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl01_ddlQuestions").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl02_ddlQuestions").select_option("False")
@@ -155,6 +189,7 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl18_ddlQuestions").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl19_ddlQuestions").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl20_ddlQuestions").select_option("False")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions").select_option("False")
     page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofPaymentSchedule").check()
@@ -165,6 +200,8 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").check()
     snap(page1, "11_questions")
+    page1.get_by_role("button", name="Next -->").click()
+
     page1.get_by_role("button", name="Submit Quote Request").click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header", timeout=30000)
@@ -190,17 +227,13 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
         print("No dollar amount found in:", ThreePayFirstInstallment)
 
     page1.get_by_role("button", name="Continue to Bind Coverage").click()
-    page1.wait_for_timeout(2000)
-    if page1.locator("#chkPopInConfirmation").is_visible():
-        page1.locator("#chkPopInConfirmation").check()
-        page1.get_by_role("button", name="Continue", exact=True).click()
+    page1.locator("#chkPopInConfirmation").check()
+    page1.get_by_role("button", name="Continue", exact=True).click()
 
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1", timeout=30000)
     eff_date = "04/30/2026"
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_chkNonCancellation").check()
     snap(page1, "13_bind_request")
     page1.get_by_role("button", name="Request to Bind").click()
 

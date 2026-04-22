@@ -21,14 +21,16 @@ class CoveragesStep:
         self.page = page
 
     def select_wind_only(self, coverage_a: str):
-        """Uncheck HO-3, keeping Wind Only checked."""
-        self.page.get_by_role("checkbox", name="HO-3").uncheck()
+        """Uncheck both HO-3 products, keeping Wind Only checked."""
+        self.page.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").uncheck()  # Auros HO-3
+        self.page.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").uncheck()  # GeoVera Specialty HO-3
         self.page.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
         self.page.get_by_role("button", name="Next -->").click()
 
     def select_ho3(self, coverage_a: str):
-        """Uncheck HO Wind Only, keeping HO-3 checked."""
-        self.page.get_by_role("checkbox", name="HO Wind Only").uncheck()
+        """Uncheck Auros HO-3 and Wind Only, keeping GeoVera Specialty HO-3 checked."""
+        self.page.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").uncheck()  # Auros HO-3
+        self.page.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_2").uncheck()  # GeoVera Specialty HO Wind Only
         self.page.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
         self.page.get_by_role("button", name="Next -->").click()
 

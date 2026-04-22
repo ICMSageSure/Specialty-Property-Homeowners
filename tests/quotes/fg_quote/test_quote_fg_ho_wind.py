@@ -1,12 +1,11 @@
 import re
 import os
 import random
-import pytest
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
 from openpyxl import load_workbook, Workbook
 
-RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "hl_test_results.xlsx")
+RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "fg_test_results.xlsx")
 
 def _append_to_xlsx(row: list):
     path = os.path.abspath(RESULTS_FILE)
@@ -46,11 +45,12 @@ FL_ADDRESSES = [
     "14688 Indigo Lakes Cir, Naples, FL 34119",
 ]
 
-def test_quote_hl_ho_wind(page: Page, snap) -> None:
-    username = "tsicortesmarquez@geovera"
+def test_quote_fg_ho_wind(page: Page, snap) -> None:
+    username = "icortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
 
+    # Log in to MGS and start a new quote for FG HO Wind only
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill(username)
@@ -63,13 +63,15 @@ def test_quote_hl_ho_wind(page: Page, snap) -> None:
     snap(page, "02_product_select")
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()
+
+    # Homeowners Quote Window accessed
     page1 = page1_info.value
     page1.wait_for_selector("#ctl00_WelcomeUserControl_ddlWholesaler", timeout=30000)
-    page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option("HULL001")
-    page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").fill("10506")
+    page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option("APPUND")
+    page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").fill("APPAGT")
     page1.locator("#ctl00_WelcomeUserControl_btnUpdateQuotingAs").click()
-    page1.wait_for_selector("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl28_btnId", timeout=30000)
-    page1.locator("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl28_btnId").click()
+    page1.wait_for_selector("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId", timeout=30000)
+    page1.locator("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId").click()
     page1.wait_for_timeout(3000)
     snap(page1, "03_welcome")
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
@@ -83,12 +85,18 @@ def test_quote_hl_ho_wind(page: Page, snap) -> None:
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
     snap(page1, "05_coverages")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
     page1.get_by_role("button", name="Next -->").click()
     page1.locator("#ddlConstructionType").select_option("FR")
     page1.locator("#ddlSidingTypeDominant").select_option("ST")
     page1.locator("#ddlRestrictedRoofShapes").select_option("False")
     if page1.locator("#ddlRoofShapeDominant").is_visible():
         page1.locator("#ddlRoofShapeDominant").select_option("2")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").fill("0")
     snap(page1, "06_property")
     page1.get_by_role("button", name="Next -->").click()
     page1.wait_for_timeout(3000)
@@ -163,19 +171,19 @@ def test_quote_hl_ho_wind(page: Page, snap) -> None:
     snap(page1, "11_questions")
     page1.get_by_role("button", name="Submit Quote Request").click()
 
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header", timeout=30000)
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
     snap(page1, "12_quote_results")
-    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header").inner_text()
+    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header").inner_text()
     print(f'Homeowners Product Option: {ProductName}')
-    QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Number").inner_text()
+    QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Number").inner_text()
     print(f'Quote Number: {QuoteNumber}')
-    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
+    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
     print(f'Full Pay Option: {FullPay}')
     premium_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", FullPay)
     premium = premium_match.group() if premium_match else FullPay
 
     ThreePayFirstInstallment = page1.locator(
-        '#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
+        '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
     ).text_content().strip()
 
     match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
@@ -186,46 +194,32 @@ def test_quote_hl_ho_wind(page: Page, snap) -> None:
         print("No dollar amount found in:", ThreePayFirstInstallment)
 
     page1.get_by_role("button", name="Continue to Bind Coverage").click()
-    page1.locator("#chkPopInConfirmation").check()
-    page1.get_by_role("button", name="Continue", exact=True).click()
+    page1.wait_for_timeout(2000)
+    if page1.locator("#chkPopInConfirmation").is_visible():
+        page1.locator("#chkPopInConfirmation").check()
+        page1.get_by_role("button", name="Continue", exact=True).click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1", timeout=30000)
     eff_date = "04/30/2026"
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").press_sequentially(eff_date)
+    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_chkNonCancellation").check()
     snap(page1, "13_bind_request")
     page1.get_by_role("button", name="Request to Bind").click()
 
-    binder_number_locator = page1.locator("td.label.Bold:has-text('Record Number:') + td.SingleColumn1")
-    binder_number_locator.wait_for(state="visible")
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue", timeout=30000)
     snap(page1, "14_binder_detail")
-    binder_number_text = binder_number_locator.inner_text().strip()
-    binder_number_match = re.search(r"(GH\d+)", binder_number_text)
-    binder_number = binder_number_match.group(1) if binder_number_match else None
-    print(f'Binder Number: {binder_number}')
-
-    bill_to_locator = page1.locator("td.label.Bold:has-text('Bill To:') + td.SingleColumn1")
-    bill_to_text = bill_to_locator.inner_text().strip()
-    print(f'Bill To: {bill_to_text}')
-
-    payment_plan_locator = page1.locator("td.label.Bold:has-text('Payment Plan:') + td.SingleColumn1")
-    payment_plan_text = payment_plan_locator.inner_text().strip()
-    print(f'Payment Plan: {payment_plan_text}')
-
-    effective_date_locator = page1.locator("td.label.Bold:has-text('Effective Date:') + td.SingleColumn1")
-    effective_date_text = effective_date_locator.inner_text().strip()
-    print(f'Effective Date: {effective_date_text}')
-
-    amount_due_locator = page1.locator("td.label.Bold:has-text('Amount Due:') + td.SingleColumn1")
-    amount_due_text = amount_due_locator.inner_text().strip()
-    print(f'Amount Due Now: {amount_due_text}')
-
-    due_date_locator = page1.locator("td.label.Bold:has-text('Due Date:') + td.SingleColumn1")
-    due_date_text = due_date_locator.inner_text().strip()
-    print(f'Due Date: {due_date_text}')
+    BinderNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBinderNumber").inner_text()
+    print(f'Binder Number: {BinderNumber}')
+    BillTo = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBillTo").inner_text()
+    print(f'Bill To: {BillTo}')
+    PaymentPlan = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblPaymentPlan").inner_text()
+    print(f'Payment Plan: {PaymentPlan}')
+    EffectiveDate = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblEffectiveDate").inner_text()
+    print(f'Effective Date: {EffectiveDate}')
+    AmountDueNow = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue").inner_text()
+    print(f'Amount Due Now: {AmountDueNow}')
     page1.wait_for_timeout(5000)
 
     _append_to_xlsx([username, address, ProductName, coverage_a, QuoteNumber, premium])
