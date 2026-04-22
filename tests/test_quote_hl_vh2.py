@@ -60,7 +60,7 @@ FL_ADDRESSES = [
     "4346 Marine Pkwy, New Port Richey, FL 34652",
 ]
 
-def test_quote_hl_vh2(page: Page) -> None:
+def test_quote_hl_vh2(page: Page, snap) -> None:
     username = "tsicortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "600,000"
@@ -71,8 +71,10 @@ def test_quote_hl_vh2(page: Page) -> None:
     page.get_by_role("textbox", name="Password").click()
     page.get_by_role("textbox", name="Password").fill(os.environ["INTERNAL_PASSWORD"])
     page.get_by_role("button", name="Log In", exact=True).click()
+    snap(page, "01_login")
     page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
     page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
+    snap(page, "02_product_select")
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()
     page1 = page1_info.value
@@ -83,10 +85,12 @@ def test_quote_hl_vh2(page: Page) -> None:
     page1.wait_for_selector("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl28_btnId", timeout=30000)
     page1.locator("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl28_btnId").click()
     page1.wait_for_timeout(3000)
+    snap(page1, "03_welcome")
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
     page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
     page1.wait_for_timeout(1000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
+    snap(page1, "04_address")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Vacant")
@@ -104,9 +108,11 @@ def test_quote_hl_vh2(page: Page) -> None:
     if not page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").is_enabled():
         pytest.skip("chkProductType_1 is disabled for this address — skipping test")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").check()
+    page1.get_by_role("checkbox", name="Auros HO-3").uncheck()
     page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+    snap(page1, "05_coverages")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ddlConstructionType").select_option("FR")
@@ -119,6 +125,7 @@ def test_quote_hl_vh2(page: Page) -> None:
         roof_material.select_option("20")
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").fill("0")
+    snap(page1, "06_property")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.wait_for_timeout(3000)
@@ -127,11 +134,13 @@ def test_quote_hl_vh2(page: Page) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlGatedGuardedCommunity").select_option("False")
     if page1.locator("#ddlSwimmingPool").is_visible():
         page1.locator("#ddlSwimmingPool").select_option(label="No Swimming Pool")
+    snap(page1, "07_protection")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ddlPolybutylenePipes").select_option("False")
     page1.locator("#ddlAutomaticWaterShutoffValve").select_option("False")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWillRenovate").select_option("No")
+    snap(page1, "08_plumbing")
     page1.get_by_role("button", name="Next -->").click()
 
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlWindMitigationVerificationInspection").is_visible():
@@ -140,6 +149,7 @@ def test_quote_hl_vh2(page: Page) -> None:
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtWindMitigationVerificationInspectionDay").fill("01")
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtWindMitigationVerificationInspectionYear").fill("2022")
         page1.locator("#fileWindMitigationVerificationInspectionForm").set_input_files("C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/uploads/testfile.pdf")
+    snap(page1, "09_wind_mitigation")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
@@ -157,6 +167,7 @@ def test_quote_hl_vh2(page: Page) -> None:
     page1.locator("#ddlPriorHomeownersInsurance").select_option("False")
     page1.wait_for_timeout(3000)
     page1.locator("#ddlPriorHomeownersInsurance").select_option("False")
+    snap(page1, "10_applicant")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl00_ddlQuestions").select_option("False")
@@ -190,11 +201,13 @@ def test_quote_hl_vh2(page: Page) -> None:
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkRoofExclusion").check()
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkAcknowledgedWaterDamageLimitation").check()
+    snap(page1, "11_questions")
     page1.get_by_role("button", name="Next -->").click()
 
     page1.get_by_role("button", name="Submit Quote Request").click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header", timeout=30000)
+    snap(page1, "12_quote_results")
     ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header").inner_text()
     print(f'Homeowners Product Option: {ProductName}')
     QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Number").inner_text()
@@ -228,10 +241,12 @@ def test_quote_hl_vh2(page: Page) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").press_sequentially(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")
+    snap(page1, "13_bind_request")
     page1.get_by_role("button", name="Request to Bind").click()
 
     binder_number_locator = page1.locator("td.label.Bold:has-text('Record Number:') + td.SingleColumn1")
     binder_number_locator.wait_for(state="visible")
+    snap(page1, "14_binder_detail")
     binder_number_text = binder_number_locator.inner_text().strip()
     binder_number_match = re.search(r"(GH\d+)", binder_number_text)
     binder_number = binder_number_match.group(1) if binder_number_match else None
