@@ -27,6 +27,14 @@ class QuoteResultsPage:
         match = self._DOLLAR_RE.search(full_pay)
         return match.group() if match else full_pay
 
+    def get_full_pay(self) -> str:
+        return self.page.locator(self._FULL_PAY).inner_text()
+
+    def get_three_pay(self) -> str:
+        three_pay = self.page.locator(self._THREE_PAY).text_content().strip()
+        match = self._DOLLAR_RE.search(three_pay)
+        return match.group() if match else ""
+
     def print_quote_summary(self):
         print(f"Product:       {self.get_product_name()}")
         print(f"Quote #:       {self.get_quote_number()}")
@@ -81,3 +89,6 @@ class BinderDetailPage:
         for label, selector in self._FIELDS.items():
             print(f"{label}: {self.page.locator(selector).inner_text()}")
         self.page.wait_for_timeout(5000)
+
+    def get_binder_number(self) -> str:
+        return self.page.locator(self._FIELDS["Binder Number"]).inner_text()

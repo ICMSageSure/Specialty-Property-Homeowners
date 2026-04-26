@@ -54,7 +54,7 @@ def _append_to_xlsx(row: list):
     else:
         wb = Workbook()
         ws = wb.active
-        ws.append(["User Name", "Address", "Product Type", "Coverage A Limit", "Quote Number", "Premium"])
+        ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
     ws.append(row)
     wb.save(path)
 
@@ -84,9 +84,13 @@ def test_quote_fg_ho_wind_v2(page: Page):
     product_name = results.get_product_name()
     quote_number = results.get_quote_number()
     premium = results.get_premium()
+    full_pay = results.get_full_pay()
+    three_pay = results.get_three_pay()
     results.continue_to_bind()
 
     BindRequestPage(popup).fill_and_submit()
-    BinderDetailPage(popup).wait_and_print()
+    binder_detail = BinderDetailPage(popup)
+    binder_detail.wait_and_print()
+    binder_number = binder_detail.get_binder_number()
 
-    _append_to_xlsx([username, address, product_name, coverage_a, quote_number, premium])
+    _append_to_xlsx([username, address, "FG HO Wind", product_name, coverage_a, quote_number, "", "", premium, full_pay, three_pay, "", "", "", "", "", "", "", "", binder_number])

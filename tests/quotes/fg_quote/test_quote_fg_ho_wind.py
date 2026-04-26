@@ -15,7 +15,7 @@ def _append_to_xlsx(row: list):
     else:
         wb = Workbook()
         ws = wb.active
-        ws.append(["User Name", "Address", "Product Type", "Coverage A Limit", "Quote Number", "Premium"])
+        ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
     ws.append(row)
     wb.save(path)
 
@@ -45,12 +45,11 @@ FL_ADDRESSES = [
     "14688 Indigo Lakes Cir, Naples, FL 34119",
 ]
 
-def test_quote_fg_ho_wind(page: Page, snap) -> None:
+def test_quote_fg_ho_wind_quote_only(page: Page, snap) -> None:
     username = "icortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
 
-    # Log in to MGS and start a new quote for FG HO Wind only
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill(username)
@@ -64,7 +63,6 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()
 
-    # Homeowners Quote Window accessed
     page1 = page1_info.value
     page1.wait_for_selector("#ctl00_WelcomeUserControl_ddlWholesaler", timeout=30000)
     page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option("APPUND")
@@ -186,40 +184,8 @@ def test_quote_fg_ho_wind(page: Page, snap) -> None:
         '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
     ).text_content().strip()
 
-    match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
+    three_pay_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
+    three_pay = three_pay_match.group() if three_pay_match else ""
+    print(f"3 Pay First Installment: {three_pay}")
 
-    if match:
-        print(f"3 Pay First Installment:\n{match.group().strip()}\n")
-    else:
-        print("No dollar amount found in:", ThreePayFirstInstallment)
-
-    page1.get_by_role("button", name="Continue to Bind Coverage").click()
-    page1.wait_for_timeout(2000)
-    if page1.locator("#chkPopInConfirmation").is_visible():
-        page1.locator("#chkPopInConfirmation").check()
-        page1.get_by_role("button", name="Continue", exact=True).click()
-
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1", timeout=30000)
-    eff_date = "04/30/2026"
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
-    page1.locator("#ddlPaymentPlan1").select_option("0")
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_chkNonCancellation").check()
-    snap(page1, "13_bind_request")
-    page1.get_by_role("button", name="Request to Bind").click()
-
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue", timeout=30000)
-    snap(page1, "14_binder_detail")
-    BinderNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBinderNumber").inner_text()
-    print(f'Binder Number: {BinderNumber}')
-    BillTo = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblBillTo").inner_text()
-    print(f'Bill To: {BillTo}')
-    PaymentPlan = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblPaymentPlan").inner_text()
-    print(f'Payment Plan: {PaymentPlan}')
-    EffectiveDate = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblEffectiveDate").inner_text()
-    print(f'Effective Date: {EffectiveDate}')
-    AmountDueNow = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue").inner_text()
-    print(f'Amount Due Now: {AmountDueNow}')
-    page1.wait_for_timeout(5000)
-
-    _append_to_xlsx([username, address, ProductName, coverage_a, QuoteNumber, premium])
+    _append_to_xlsx([username, address, "FG HO Wind", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", ""])

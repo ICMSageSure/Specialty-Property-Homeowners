@@ -16,7 +16,7 @@ def _append_to_xlsx(row: list):
     else:
         wb = Workbook()
         ws = wb.active
-        ws.append(["User Name", "Address", "Product Type", "Coverage A Limit", "Quote Number", "Premium"])
+        ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
     ws.append(row)
     wb.save(path)
 
@@ -60,7 +60,7 @@ FL_ADDRESSES = [
     "4346 Marine Pkwy, New Port Richey, FL 34652",
 ]
 
-def test_quote_hl_vh1(page: Page, snap) -> None:
+def test_quote_hl_vh1_quote_only(page: Page, snap) -> None:
     username = "tsicortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "600,000"
@@ -224,53 +224,8 @@ def test_quote_hl_vh1(page: Page, snap) -> None:
         '#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
     ).text_content().strip()
 
-    match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
+    three_pay_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
+    three_pay = three_pay_match.group() if three_pay_match else ""
+    print(f"3 Pay First Installment: {three_pay}")
 
-    if match:
-        print(f"3 Pay First Installment:\n{match.group().strip()}\n")
-    else:
-        print("No dollar amount found in:", ThreePayFirstInstallment)
-
-    page1.get_by_role("button", name="Continue to Bind Coverage").click()
-    page1.locator("#chkPopInConfirmation").check()
-    page1.get_by_role("button", name="Continue", exact=True).click()
-
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1", timeout=30000)
-    eff_date = "04/30/2026"
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").press_sequentially(eff_date)
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
-    page1.locator("#ddlPaymentPlan1").select_option("0")
-    snap(page1, "13_bind_request")
-    page1.get_by_role("button", name="Request to Bind").click()
-
-    binder_number_locator = page1.locator("td.label.Bold:has-text('Record Number:') + td.SingleColumn1")
-    binder_number_locator.wait_for(state="visible")
-    snap(page1, "14_binder_detail")
-    binder_number_text = binder_number_locator.inner_text().strip()
-    binder_number_match = re.search(r"(GH\d+)", binder_number_text)
-    binder_number = binder_number_match.group(1) if binder_number_match else None
-    print(f'Binder Number: {binder_number}')
-
-    bill_to_locator = page1.locator("td.label.Bold:has-text('Bill To:') + td.SingleColumn1")
-    bill_to_text = bill_to_locator.inner_text().strip()
-    print(f'Bill To: {bill_to_text}')
-
-    payment_plan_locator = page1.locator("td.label.Bold:has-text('Payment Plan:') + td.SingleColumn1")
-    payment_plan_text = payment_plan_locator.inner_text().strip()
-    print(f'Payment Plan: {payment_plan_text}')
-
-    effective_date_locator = page1.locator("td.label.Bold:has-text('Effective Date:') + td.SingleColumn1")
-    effective_date_text = effective_date_locator.inner_text().strip()
-    print(f'Effective Date: {effective_date_text}')
-
-    amount_due_locator = page1.locator("td.label.Bold:has-text('Amount Due:') + td.SingleColumn1")
-    amount_due_text = amount_due_locator.inner_text().strip()
-    print(f'Amount Due Now: {amount_due_text}')
-
-    due_date_locator = page1.locator("td.label.Bold:has-text('Due Date:') + td.SingleColumn1")
-    due_date_text = due_date_locator.inner_text().strip()
-    print(f'Due Date: {due_date_text}')
-    page1.wait_for_timeout(5000)
-
-    _append_to_xlsx([username, address, ProductName, coverage_a, QuoteNumber, premium])
+    _append_to_xlsx([username, address, "HL VH1", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", ""])
