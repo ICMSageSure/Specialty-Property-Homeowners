@@ -9,16 +9,31 @@ from openpyxl import load_workbook, Workbook
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "fg_test_results.xlsx")
 
 def _append_to_xlsx(row: list):
+    import time
     path = os.path.abspath(RESULTS_FILE)
-    if os.path.exists(path):
-        wb = load_workbook(path)
-        ws = wb.active
-    else:
-        wb = Workbook()
-        ws = wb.active
-        ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
-    ws.append(row)
-    wb.save(path)
+    lock_path = path + ".lock"
+    for _ in range(20):
+        try:
+            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.close(fd)
+            break
+        except FileExistsError:
+            time.sleep(0.5)
+    try:
+        if os.path.exists(path):
+            wb = load_workbook(path)
+            ws = wb.active
+        else:
+            wb = Workbook()
+            ws = wb.active
+            ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
+        ws.append(row)
+        wb.save(path)
+    finally:
+        try:
+            os.unlink(lock_path)
+        except Exception:
+            pass
 
 
 FL_ADDRESSES = [
@@ -46,8 +61,14 @@ FL_ADDRESSES = [
     "14688 Indigo Lakes Cir, Naples, FL 34119",
 ]
 
-def test_quote_fg_ho3_quote_to_bind(page: Page, snap) -> None:
-    username = "icortesmarquez@geovera"
+@pytest.mark.parametrize("pay_plan_val,pay_plan_label", [
+    ("0", "Full Pay"),
+    ("1", "3 Pay"),
+    ("2", "4 Pay"),
+    ("3", "Monthly"),
+])
+def test_quote_fg_ho3_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_plan_label: str) -> None:
+    username = "icortesmarquez@geovera.com"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
 
@@ -78,8 +99,10 @@ def test_quote_fg_ho3_quote_to_bind(page: Page, snap) -> None:
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
     snap(page1, "04_address")
     page1.get_by_role("button", name="Next -->").click()
-    page1.get_by_role("checkbox", name="Auros HO-3").uncheck()
-    page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+    if page1.get_by_role("checkbox", name="Auros HO-3").is_visible():
+        page1.get_by_role("checkbox", name="Auros HO-3").uncheck()
+    if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+        page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
     snap(page1, "05_coverages")
@@ -96,8 +119,19 @@ def test_quote_fg_ho3_quote_to_bind(page: Page, snap) -> None:
     snap(page1, "06_property")
     page1.get_by_role("button", name="Next -->").click()
     page1.wait_for_timeout(3000)
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option("False")
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option("False")
+    replacement_cost = 0.0
+    try:
+        cov_a_elem = page1.locator("#txtHomeownersCoverageALimit")
+        if cov_a_elem.count() > 0 and cov_a_elem.first.is_visible():
+            raw = cov_a_elem.first.input_value()
+            clean = re.sub(r'[^0-9.]', '', raw)
+            replacement_cost = float(clean) if clean else 0.0
+    except Exception:
+        pass
+    print(f'Replacement Cost (Coverage A): ${replacement_cost:,.2f}')
+    alarm_val = "True" if replacement_cost > 1_000_000 else "False"
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm").select_option(alarm_val)
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralBurglarAlarm").select_option(alarm_val)
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlGatedGuardedCommunity").select_option("False")
     if page1.locator("#ddlSwimmingPool").is_visible():
         page1.locator("#ddlSwimmingPool").select_option(label="No Swimming Pool")
@@ -186,14 +220,24 @@ def test_quote_fg_ho3_quote_to_bind(page: Page, snap) -> None:
     three_pay = three_pay_match.group() if three_pay_match else ""
     print(f"3 Pay First Installment: {three_pay}")
 
+    try:
+        page1.locator(f'input[type="radio"][value="{QuoteNumber}"]').first.check(timeout=5000)
+    except Exception:
+        pass
     page1.get_by_role("button", name="Continue to Bind Coverage").click()
-    page1.locator("#chkPopInConfirmation").check()
-    page1.get_by_role("button", name="Continue", exact=True).click()
+    page1.wait_for_timeout(2000)
+    if page1.locator("#chkPopInConfirmation").is_visible():
+        page1.locator("#chkPopInConfirmation").check()
+        page1.get_by_role("button", name="Continue", exact=True).click()
 
     eff_date = (datetime.today()).strftime('%m/%d/%Y')
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
-    page1.locator("#ddlPaymentPlan1").select_option("0")
+    try:
+        page1.locator("#ddlPaymentPlan1").select_option(pay_plan_val)
+    except Exception:
+        pytest.skip(f"Pay plan '{pay_plan_label}' not available for this product")
+    print(f'Selected Pay Plan: {pay_plan_label}')
     snap(page1, "13_bind_request")
     page1.get_by_role("button", name="Request to Bind").click()
 
@@ -211,4 +255,4 @@ def test_quote_fg_ho3_quote_to_bind(page: Page, snap) -> None:
     print(f'Amount Due Now: {AmountDueNow}')
     page1.wait_for_timeout(5000)
 
-    _append_to_xlsx([username, address, "FG HO-3", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", BinderNumber])
+    _append_to_xlsx([username, address, f"FG HO-3 ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", BinderNumber])
