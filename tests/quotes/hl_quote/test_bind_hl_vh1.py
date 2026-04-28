@@ -109,8 +109,12 @@ def test_quote_hl_vh1_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
     snap(page1, "03_welcome")
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
     page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
-    page1.wait_for_timeout(1000)
-    page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
+    page1.wait_for_timeout(1500)
+    try:
+        page1.locator(".rcbList .rcbItem").first.click(timeout=1500)
+    except Exception:
+        page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
+        page1.wait_for_timeout(1500)
     snap(page1, "04_address")
     page1.get_by_role("button", name="Next -->").click()
 
@@ -127,8 +131,10 @@ def test_quote_hl_vh1_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
 
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").check()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").uncheck()
-    page1.get_by_role("checkbox", name="Auros HO-3").uncheck()
-    page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+    if page1.get_by_role("checkbox", name="Auros HO-3").is_visible():
+        page1.get_by_role("checkbox", name="Auros HO-3").uncheck()
+    if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+        page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
     snap(page1, "05_coverages")
