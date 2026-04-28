@@ -60,7 +60,7 @@ def _append_to_xlsx(row: list):
 
 
 def test_quote_fg_ho_wind_v2(page: Page):
-    username = "icortesmarquez@geovera"
+    username = "icortesmarquez@geovera.com"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
 

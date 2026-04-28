@@ -1,4 +1,4 @@
-import re
+﻿import re
 import os
 import random
 import pytest
@@ -47,7 +47,7 @@ FL_ADDRESSES = [
 ]
 
 def test_quote_fg_ho3t_quote_only(page: Page, snap) -> None:
-    username = "icortesmarquez@geovera"
+    username = "icortesmarquez@geovera.com"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
 
@@ -74,9 +74,10 @@ def test_quote_fg_ho3t_quote_only(page: Page, snap) -> None:
     snap(page1, "03_welcome")
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
     page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
-    page1.wait_for_timeout(1000)
+    page1.wait_for_timeout(3000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
     snap(page1, "04_address")
+    page1.wait_for_timeout(2000)
     page1.get_by_role("button", name="Next -->").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
     page1.get_by_role("checkbox", name="Auros HO-3").uncheck()

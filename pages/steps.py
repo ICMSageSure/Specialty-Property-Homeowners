@@ -1,7 +1,7 @@
-import os
+﻿import os
 from playwright.sync_api import Page
 
-UPLOAD_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "uploads", "testfile.pdf"))
+UPLOAD_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "test_data", "testfile.pdf"))
 
 
 class AddressStep:
@@ -11,8 +11,9 @@ class AddressStep:
     def enter_address(self, address: str):
         self.page.locator("#RadAutoCompleteBoxGeo_Input").click()
         self.page.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_timeout(3000)
         self.page.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
+        self.page.wait_for_timeout(2000)
         self.page.get_by_role("button", name="Next -->").click()
 
 

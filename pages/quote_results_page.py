@@ -4,10 +4,10 @@ from playwright.sync_api import Page
 
 
 class QuoteResultsPage:
-    _HEADER      = "#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header"
-    _QUOTE_NUM   = "#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Number"
-    _FULL_PAY    = "#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption"
-    _THREE_PAY   = "#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption"
+    _HEADER      = "#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header"
+    _QUOTE_NUM   = "#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Number"
+    _FULL_PAY    = "#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl00_lblQuote1PaymentOption"
+    _THREE_PAY   = "#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl01_lblQuote1PaymentOption"
     _DOLLAR_RE   = re.compile(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})")
 
     def __init__(self, page: Page):

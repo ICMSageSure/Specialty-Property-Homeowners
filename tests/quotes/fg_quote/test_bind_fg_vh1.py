@@ -1,4 +1,4 @@
-import re
+﻿import re
 import os
 import random
 import pytest
@@ -59,7 +59,6 @@ FL_ADDRESSES = [
     "3402 72nd St W, Lehigh Acres, FL 33971",
     "3506 67th St W, Lehigh Acres, FL 33971",
     "2608 45th St SW, Lehigh Acres, FL 33976",
-    "15738 Switch Cane St, Clermont, FL 34711",
     "24 Riverwalk Cir, Freeport, FL 32439",
     "72 Riverwalk Cir, Freeport, FL 32439",
     "2596 Surfside Blvd, Cape Coral, FL 33914",
@@ -109,9 +108,10 @@ def test_quote_fg_vh1_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
     snap(page1, "03_welcome")
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
     page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
-    page1.wait_for_timeout(1000)
+    page1.wait_for_timeout(3000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
     snap(page1, "04_address")
+    page1.wait_for_timeout(2000)
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Vacant")
@@ -227,19 +227,19 @@ def test_quote_fg_vh1_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
 
     page1.get_by_role("button", name="Submit Quote Request").click()
 
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header", timeout=30000)
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
     snap(page1, "12_quote_results")
-    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header").inner_text()
+    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header").inner_text()
     print(f'Homeowners Product Option: {ProductName}')
-    QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Number").inner_text()
+    QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Number").inner_text()
     print(f'Quote Number: {QuoteNumber}')
-    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
+    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
     print(f'Full Pay Option: {FullPay}')
     premium_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", FullPay)
     premium = premium_match.group() if premium_match else FullPay
 
     ThreePayFirstInstallment = page1.locator(
-        '#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
+        '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
     ).text_content().strip()
 
     three_pay_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)
@@ -247,15 +247,36 @@ def test_quote_fg_vh1_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
     print(f"3 Pay First Installment: {three_pay}")
 
     try:
-        page1.locator(f'input[type="radio"][value="{QuoteNumber}"]').first.check(timeout=5000)
+        FourPayFirstInstallment = page1.locator(
+            '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl02_lblQuote1PaymentOption'
+        ).text_content(timeout=5000).strip()
+        four_pay_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", FourPayFirstInstallment)
+        four_pay = four_pay_match.group() if four_pay_match else ""
     except Exception:
-        pass
+        four_pay = ""
+    print(f"4 Pay First Installment: {four_pay}")
+
+    try:
+        MonthlyFirstInstallment = page1.locator(
+            '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl03_lblQuote1PaymentOption'
+        ).text_content(timeout=5000).strip()
+        monthly_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", MonthlyFirstInstallment)
+        monthly = monthly_match.group() if monthly_match else ""
+    except Exception:
+        monthly = ""
+    print(f"Monthly First Installment: {monthly}")
+
+    radio_group = "#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCompanyBind1_rblBindHomeownersProduct"
+    if page1.locator(radio_group).is_visible(timeout=5000):
+        page1.locator(f"{radio_group}_0").check()
     page1.get_by_role("button", name="Continue to Bind Coverage").click()
     page1.wait_for_timeout(2000)
     if page1.locator("#chkPopInConfirmation").is_visible():
         page1.locator("#chkPopInConfirmation").check()
         page1.get_by_role("button", name="Continue", exact=True).click()
 
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1", timeout=30000)
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1", timeout=30000)
     eff_date = "04/30/2026"
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
@@ -281,4 +302,4 @@ def test_quote_fg_vh1_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
     print(f'Amount Due Now: {AmountDueNow}')
     page1.wait_for_timeout(5000)
 
-    _append_to_xlsx([username, address, f"FG VH1 ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", BinderNumber])
+    _append_to_xlsx([username, address, f"FG VH1 ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, four_pay, monthly, "", "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])

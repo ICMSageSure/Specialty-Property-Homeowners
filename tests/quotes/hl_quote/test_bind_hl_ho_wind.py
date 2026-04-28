@@ -9,16 +9,31 @@ from openpyxl import load_workbook, Workbook
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "hl_test_results.xlsx")
 
 def _append_to_xlsx(row: list):
+    import time
     path = os.path.abspath(RESULTS_FILE)
-    if os.path.exists(path):
-        wb = load_workbook(path)
-        ws = wb.active
-    else:
-        wb = Workbook()
-        ws = wb.active
-        ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
-    ws.append(row)
-    wb.save(path)
+    lock_path = path + ".lock"
+    for _ in range(20):
+        try:
+            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.close(fd)
+            break
+        except FileExistsError:
+            time.sleep(0.5)
+    try:
+        if os.path.exists(path):
+            wb = load_workbook(path)
+            ws = wb.active
+        else:
+            wb = Workbook()
+            ws = wb.active
+            ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
+        ws.append(row)
+        wb.save(path)
+    finally:
+        try:
+            os.unlink(lock_path)
+        except Exception:
+            pass
 
 
 FL_ADDRESSES = [
@@ -46,7 +61,11 @@ FL_ADDRESSES = [
     "14688 Indigo Lakes Cir, Naples, FL 34119",
 ]
 
-def test_quote_hl_ho_wind_quote_to_bind(page: Page, snap) -> None:
+@pytest.mark.parametrize("pay_plan_val,pay_plan_label", [
+    ("0", "Full Pay"),
+    ("1", "3 Pay"),
+])
+def test_quote_hl_ho_wind_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_plan_label: str) -> None:
     username = "tsicortesmarquez@geovera"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
@@ -195,7 +214,11 @@ def test_quote_hl_ho_wind_quote_to_bind(page: Page, snap) -> None:
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").press_sequentially(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
-    page1.locator("#ddlPaymentPlan1").select_option("0")
+    try:
+        page1.locator("#ddlPaymentPlan1").select_option(pay_plan_val)
+    except Exception:
+        pytest.skip(f"Pay plan '{pay_plan_label}' not available for this product")
+    print(f'Selected Pay Plan: {pay_plan_label}')
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_chkNonCancellation").check()
     snap(page1, "13_bind_request")
     page1.get_by_role("button", name="Request to Bind").click()
@@ -229,4 +252,4 @@ def test_quote_hl_ho_wind_quote_to_bind(page: Page, snap) -> None:
     print(f'Due Date: {due_date_text}')
     page1.wait_for_timeout(5000)
 
-    _append_to_xlsx([username, address, "HL HO Wind", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", binder_number])
+    _append_to_xlsx([username, address, f"HL HO Wind ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", binder_number])

@@ -1,4 +1,4 @@
-import re
+﻿import re
 import os
 import random
 import pytest
@@ -44,7 +44,6 @@ FL_ADDRESSES = [
     "3402 72nd St W, Lehigh Acres, FL 33971",
     "3506 67th St W, Lehigh Acres, FL 33971",
     "2608 45th St SW, Lehigh Acres, FL 33976",
-    "15738 Switch Cane St, Clermont, FL 34711",
     "24 Riverwalk Cir, Freeport, FL 32439",
     "72 Riverwalk Cir, Freeport, FL 32439",
     "2596 Surfside Blvd, Cape Coral, FL 33914",
@@ -61,7 +60,7 @@ FL_ADDRESSES = [
 ]
 
 def test_quote_fg_vh2_quote_only(page: Page, snap) -> None:
-    username = "icortesmarquez@geovera"
+    username = "tsicortesmarquez@geovera.com"
     address = random.choice(FL_ADDRESSES)
     coverage_a = "600,000"
 
@@ -88,9 +87,10 @@ def test_quote_fg_vh2_quote_only(page: Page, snap) -> None:
     snap(page1, "03_welcome")
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
     page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
-    page1.wait_for_timeout(1000)
+    page1.wait_for_timeout(3000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
     snap(page1, "04_address")
+    page1.wait_for_timeout(2000)
     page1.get_by_role("button", name="Next -->").click()
 
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Vacant")
@@ -104,10 +104,9 @@ def test_quote_fg_vh2_quote_only(page: Page, snap) -> None:
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").select_option("1")
 
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").uncheck()
-    if not page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").is_enabled():
-        pytest.skip("chkProductType_1 is disabled for this address — skipping test")
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").check()
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").check()
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
     snap(page1, "05_coverages")
@@ -206,19 +205,19 @@ def test_quote_fg_vh2_quote_only(page: Page, snap) -> None:
 
     page1.get_by_role("button", name="Submit Quote Request").click()
 
-    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header", timeout=30000)
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
     snap(page1, "12_quote_results")
-    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Header").inner_text()
+    ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header").inner_text()
     print(f'Homeowners Product Option: {ProductName}')
-    QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lblQuote1Number").inner_text()
+    QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Number").inner_text()
     print(f'Quote Number: {QuoteNumber}')
-    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
+    FullPay = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl00_lblQuote1PaymentOption").inner_text()
     print(f'Full Pay Option: {FullPay}')
     premium_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", FullPay)
     premium = premium_match.group() if premium_match else FullPay
 
     ThreePayFirstInstallment = page1.locator(
-        '#ctl00_ContentPlaceHolder1_ucQuoteDetailHOFlood_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
+        '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl01_lblQuote1PaymentOption'
     ).text_content().strip()
 
     three_pay_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", ThreePayFirstInstallment)

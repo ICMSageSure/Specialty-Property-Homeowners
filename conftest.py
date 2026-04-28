@@ -21,7 +21,7 @@ def browser_context_args(browser_context_args, playwright):
 def run_dir():
     SCREENSHOTS_ROOT.mkdir(exist_ok=True)
     run_path = SCREENSHOTS_ROOT / datetime.now().strftime("run_%Y-%m-%d_%H-%M-%S")
-    run_path.mkdir()
+    run_path.mkdir(exist_ok=True)
     runs = sorted(SCREENSHOTS_ROOT.iterdir(), key=lambda p: p.stat().st_mtime)
     for old in runs[:-MAX_RUNS]:
         shutil.rmtree(old, ignore_errors=True)

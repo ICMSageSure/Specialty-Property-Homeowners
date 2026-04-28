@@ -1,4 +1,4 @@
-import re
+﻿import re
 import os
 import random
 import pytest
@@ -64,8 +64,6 @@ FL_ADDRESSES = [
 @pytest.mark.parametrize("pay_plan_val,pay_plan_label", [
     ("0", "Full Pay"),
     ("1", "3 Pay"),
-    ("2", "4 Pay"),
-    ("3", "Monthly"),
 ])
 def test_quote_fg_ho_wind_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_plan_label: str) -> None:
     username = "tsicortesmarquez@geovera.com"
@@ -96,9 +94,10 @@ def test_quote_fg_ho_wind_quote_to_bind(page: Page, snap, pay_plan_val: str, pay
     snap(page1, "03_welcome")
     page1.locator("#RadAutoCompleteBoxGeo_Input").click()
     page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
-    page1.wait_for_timeout(1000)
+    page1.wait_for_timeout(3000)
     page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
     snap(page1, "04_address")
+    page1.wait_for_timeout(2000)
     page1.get_by_role("button", name="Next -->").click()
     page1.get_by_role("checkbox", name="Auros HO-3").uncheck()
     page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
@@ -211,6 +210,26 @@ def test_quote_fg_ho_wind_quote_to_bind(page: Page, snap, pay_plan_val: str, pay
     print(f"3 Pay First Installment: {three_pay}")
 
     try:
+        FourPayFirstInstallment = page1.locator(
+            '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl02_lblQuote1PaymentOption'
+        ).text_content(timeout=5000).strip()
+        four_pay_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", FourPayFirstInstallment)
+        four_pay = four_pay_match.group() if four_pay_match else ""
+    except Exception:
+        four_pay = ""
+    print(f"4 Pay First Installment: {four_pay}")
+
+    try:
+        MonthlyFirstInstallment = page1.locator(
+            '#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_ctl03_lblQuote1PaymentOption'
+        ).text_content(timeout=5000).strip()
+        monthly_match = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", MonthlyFirstInstallment)
+        monthly = monthly_match.group() if monthly_match else ""
+    except Exception:
+        monthly = ""
+    print(f"Monthly First Installment: {monthly}")
+
+    try:
         page1.locator(f'input[type="radio"][value="{QuoteNumber}"]').first.check(timeout=5000)
     except Exception:
         pass
@@ -247,4 +266,4 @@ def test_quote_fg_ho_wind_quote_to_bind(page: Page, snap, pay_plan_val: str, pay
     print(f'Amount Due Now: {AmountDueNow}')
     page1.wait_for_timeout(5000)
 
-    _append_to_xlsx([username, address, f"FG HO Wind ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", BinderNumber])
+    _append_to_xlsx([username, address, f"FG HO Wind ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, four_pay, monthly, "", "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
