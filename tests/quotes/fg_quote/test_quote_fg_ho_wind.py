@@ -5,7 +5,7 @@ from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
 from openpyxl import load_workbook, Workbook
 
-RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "fg_test_results.xlsx")
+RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "fg", "fg_test_results.xlsx")
 
 def _append_to_xlsx(row: list):
     path = os.path.abspath(RESULTS_FILE)
@@ -43,6 +43,26 @@ FL_ADDRESSES = [
     "13501 Princess Kelly Dr, Jacksonville, FL 32225",
     "6229 Cranberry Ln E, Jacksonville, FL 32244",
     "14688 Indigo Lakes Cir, Naples, FL 34119",
+    "24262 Captain Kidd Blvd, Punta Gorda, FL 33955",
+    "3780 Ashland Ave, Pensacola, FL 32534",
+    "5518 Davis Street, Fort Pierce, FL 34982",
+    "37 N Waterview Dr, Palm Coast, FL 32137",
+    "3700 NW 20th Street, Coconut Creek, FL 33066",
+    "85 GLENALBY Place, Ponte Vedra, FL 32081",
+    "111 Midway Park Dr, Saint Augustine, FL 32084",
+    "6104 Spencer Parrish Rd, Parrish, FL 34219",
+    "5935 Old Berkley Rd, Auburndale, FL 33823",
+    "11180 113th Ave, Seminole, FL 33778",
+    "1339 Gallop Drive, Loxahatchee, FL 33470",
+    "23305 June Bug Trl, Brooksville, FL 34602",
+    "325 Sheffield Cir W, Palm Harbor, FL 34683",
+    "12614 Fenhurst WAY, NAPLES, FL 34120",
+    "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
+    "18037 Mambo Drive, Boca Raton, FL 33496",
+    "3651 Canopy CIR, NAPLES, FL 34120",
+    "2650 SW Windship Way, Stuart, FL 34997",
+    "5021 Wesley Dr, Tampa, FL 33647",
+    "6032 Elm Rd, Sebring, FL 33875",
 ]
 
 def test_quote_fg_ho_wind_quote_only(page: Page, snap) -> None:

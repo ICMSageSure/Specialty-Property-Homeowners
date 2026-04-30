@@ -9,6 +9,8 @@ class LoginPage:
         self.page = page
 
     def login(self, username: str, password: str):
+        self.page.set_default_timeout(60000)
+        self.page.set_default_navigation_timeout(60000)
         self.page.goto(self.URL)
         self.page.get_by_role("textbox", name="Policyholder Email or Agent").fill(username)
         self.page.get_by_role("textbox", name="Password").fill(password)

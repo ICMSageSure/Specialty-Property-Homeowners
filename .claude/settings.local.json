@@ -5,7 +5,16 @@
       "Bash(python -m pytest tests/test_quote_fg_ho3t.py tests/test_quote_fg_ho_wind.py tests/test_quote_hl_vh1.py tests/test_quote_hl_vh2.py -v -s)",
       "Bash(python -m pytest tests/test_quote_fg_ho3t.py tests/test_quote_fg_ho_wind.py tests/test_quote_hl_vh2.py -v -s)",
       "Bash(ls -la \"c:/Users/icortesmarquez/Desktop/Playwright/HO_PW/\"*results*)",
-      "Bash(python -c ':*)"
+      "Bash(python -c ':*)",
+      "Bash(python scripts/explore_fg_fields.py)",
+      "Bash(python -m pytest tests/policy/fg_policy/test_policy_fg.py -v --html=report_fg.html --self-contained-html)",
+      "Bash(python -m pytest tests/policy/fg_policy/test_policy_fg.py::test_fg_policy_cancellation -v --html=report_fg_debug.html --self-contained-html)",
+      "Bash(python -m pytest tests/policy/fg_policy/test_policy_fg.py::test_fg_policy_cancellation -v)",
+      "Bash(AUROS_USERNAME=\"icortesmarquez@geovera.com\" python -m pytest tests/quotes/auros_quote/test_bind_auros.py -k test_bind_auros_ho3t --html=report_auros_user1.html --self-contained-html -v)",
+      "Bash(tee log_auros_user1.txt)",
+      "Bash(AUROS_USERNAME=\"tsicortesmarquez@geovera.com\" python -m pytest tests/quotes/auros_quote/test_bind_auros.py -k test_bind_auros_ho3t --html=report_auros_user2.html --self-contained-html -v)",
+      "Bash(tee log_auros_user2.txt)",
+      "Bash(python -c ' *)"
     ]
   }
 }

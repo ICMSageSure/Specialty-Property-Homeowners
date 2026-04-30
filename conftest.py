@@ -38,9 +38,10 @@ def snap(run_dir, request):
 
     def take(page, label):
         counter[0] += 1
-        dest = run_dir / test_name / f"{counter[0]:02d}_{label}.png"
+        safe_name = test_name.replace("/", "_").replace("\\", "_")
+        dest = run_dir / safe_name / f"{counter[0]:02d}_{label}.png"
         dest.parent.mkdir(exist_ok=True)
-        page.screenshot(path=str(dest))
+        page.screenshot(path=str(dest), full_page=True)
         paths.append(dest)
 
     return take

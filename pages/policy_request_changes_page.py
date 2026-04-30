@@ -12,7 +12,7 @@ class PolicyRequestChangesPage:
 
     def select_change_type(self, value: str) -> None:
         self.page.locator(self._CHANGE_TYPE).select_option(value)
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_timeout(3000)
 
     def fill_effective_date(self, date: str) -> None:
         self.page.locator(self._EFF_DATE).fill(date)
@@ -27,6 +27,17 @@ class PolicyRequestChangesPage:
 
     def upload_file(self, path: str) -> None:
         self.page.locator(self._FILE_UPLOAD).set_input_files(path)
+
+    def select_cancel_reason(self, value: str) -> None:
+        self.page.locator("#ddlCancelReason").select_option(value)
+        self.page.wait_for_timeout(1500)
+
+    def select_mailing_address_check(self, value: str) -> None:
+        """value: 'true' = Yes, 'false' = No"""
+        self.page.locator(
+            "#ctl00_ctl00_ContentPlaceHolder1_PolicyContentPlaceHolder2_ddlMailingAddress"
+        ).select_option(value)
+        self.page.wait_for_timeout(2000)
 
     def click_continue(self) -> None:
         self.page.get_by_role("button", name="Continue").click()
