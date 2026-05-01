@@ -6,34 +6,16 @@ metadata: {'Python': '3.13.2', 'Platform': 'Windows-10-10.0.19042-SP0', 'Package
 rootdir: C:\Users\icortesmarquez\Desktop\Playwright\HO_PW
 configfile: pytest.ini
 plugins: anyio-4.12.0, base-url-2.1.0, html-4.1.1, metadata-3.1.1, playwright-0.7.0, repeat-0.9.4, xdist-3.8.0
-collecting ... collected 26 items
+collecting ... collected 10 items
 
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-1] PASSED [  3%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-2] SKIPPED [  7%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-3] SKIPPED [ 11%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-4] SKIPPED [ 15%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-5] SKIPPED [ 19%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-6] SKIPPED [ 23%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-7] SKIPPED [ 26%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-8] SKIPPED [ 30%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-9] SKIPPED [ 34%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-10] SKIPPED [ 38%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-11] SKIPPED [ 42%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-12] SKIPPED [ 46%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-13] SKIPPED [ 50%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-1] SKIPPED [ 53%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-2] SKIPPED [ 57%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-3] SKIPPED [ 61%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-4] SKIPPED [ 65%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-5] SKIPPED [ 69%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-6] SKIPPED [ 73%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-7] SKIPPED [ 76%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-8] SKIPPED [ 80%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-9] SKIPPED [ 84%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-10] SKIPPED [ 88%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-11] SKIPPED [ 92%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-12] SKIPPED [ 96%]
-tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-13] SKIPPED [100%]
-
-- Generated html report: file:///C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/scripts/../results/auros/report_auros_user2.html -
-================== 1 passed, 25 skipped in 326.96s (0:05:26) ==================
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-1-5] FAILED [ 10%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-2-5] PASSED [ 20%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-3-5] PASSED [ 30%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-4-5] PASSED [ 40%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Full Pay-5-5] FAILED [ 50%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-1-5] PASSED [ 60%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-2-5] SKIPPED [ 70%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-3-5] SKIPPED [ 80%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-4-5] SKIPPED [ 90%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-4-5] ERROR [ 90%]
+tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3t[chromium-0-Full Pay-5-5] ERROR [100%]^C

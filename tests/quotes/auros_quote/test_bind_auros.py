@@ -3,11 +3,94 @@ import os
 import random
 import pytest
 from playwright.sync_api import Page
-from datetime import datetime
 from openpyxl import load_workbook, Workbook
 
 USERNAME = os.environ.get("AUROS_USERNAME", "icortesmarquez@geovera.com")
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros", "auros_test_results.xlsx")
+
+EFFECTIVE_DATES = ["05/04/2026", "05/15/2026"]
+
+BILL_TO_SHORT = {
+    "Applicant":       "Applicant",
+    "Mortgagee":       "Mortgagee",
+    "Alternate Payor": "AltPayor",
+}
+
+MORTGAGEE_SECOND_NAMES = [
+    "ISAOA ATIMA",
+    "C/O ESCROW DEPT",
+    "LOAN SERVICING DIV",
+    "ATTN INSURANCE DEPT",
+    "ISAOA",
+]
+
+AP_NAMES = [
+    "ACME FINANCIAL LLC",
+    "SUNRISE LENDING GROUP",
+    "COASTAL CREDIT CORP",
+    "LIBERTY FUNDING INC",
+    "PREMIER LOAN SERVICES",
+    "ATLAS MORTGAGE CO",
+    "CORNERSTONE FINANCE",
+    "HORIZON LENDING LLC",
+]
+
+AP_SECOND_NAMES = [
+    "ISAOA ATIMA",
+    "C/O BILLING DEPT",
+    "LOAN SERVICES DIV",
+    "ATTN INSURANCE DEPT",
+]
+
+AP_STREETS = [
+    "100 CORPORATE BLVD",
+    "200 BUSINESS PARK DR",
+    "350 COMMERCE ST",
+    "475 FINANCIAL WAY",
+    "600 ENTERPRISE AVE",
+    "725 INDUSTRY BLVD",
+    "850 COMMERCE PKWY",
+]
+
+AP_CITIES = [
+    "DALLAS", "ATLANTA", "CHICAGO", "PHOENIX", "HOUSTON",
+    "DENVER", "MIAMI", "SEATTLE", "BOSTON", "CHARLOTTE",
+]
+
+US_STATES = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY",
+]
+
+# All Bill To × Pay Plan × Autopay combinations.
+# Monthly always has autopay; no need to test it without.
+BIND_SCENARIOS = [
+    # bill_to_val, bill_to_label, pay_plan_val, pay_plan_label, autopay
+    ("0", "Applicant",       "0", "Full Pay", False),
+    ("0", "Applicant",       "0", "Full Pay", True),
+    ("0", "Applicant",       "1", "3 Pay",    False),
+    ("0", "Applicant",       "1", "3 Pay",    True),
+    ("0", "Applicant",       "2", "4 Pay",    False),
+    ("0", "Applicant",       "2", "4 Pay",    True),
+    ("0", "Applicant",       "3", "Monthly",  True),
+    ("1", "Mortgagee",       "0", "Full Pay", False),
+    ("1", "Mortgagee",       "0", "Full Pay", True),
+    ("1", "Mortgagee",       "1", "3 Pay",    False),
+    ("1", "Mortgagee",       "1", "3 Pay",    True),
+    ("1", "Mortgagee",       "2", "4 Pay",    False),
+    ("1", "Mortgagee",       "2", "4 Pay",    True),
+    ("1", "Mortgagee",       "3", "Monthly",  True),
+    ("2", "Alternate Payor", "0", "Full Pay", False),
+    ("2", "Alternate Payor", "0", "Full Pay", True),
+    ("2", "Alternate Payor", "1", "3 Pay",    False),
+    ("2", "Alternate Payor", "1", "3 Pay",    True),
+    ("2", "Alternate Payor", "2", "4 Pay",    False),
+    ("2", "Alternate Payor", "2", "4 Pay",    True),
+    ("2", "Alternate Payor", "3", "Monthly",  True),
+]
 
 
 def _append_to_xlsx(row: list):
@@ -107,14 +190,16 @@ def _login_and_open_quote(page: Page):
 
 
 def _enter_address(page1: Page, address: str):
-    page1.locator("#RadAutoCompleteBoxGeo_Input").click()
-    page1.locator("#RadAutoCompleteBoxGeo_Input").press_sequentially(address)
-    page1.wait_for_timeout(1500)
+    inp = page1.locator("#RadAutoCompleteBoxGeo_Input")
+    inp.click()
+    inp.press_sequentially(address, delay=50)
     try:
-        page1.locator(".rcbList .rcbItem").first.click(timeout=1500)
+        page1.wait_for_selector(".rcbList .rcbItem", timeout=8000)
+        page1.locator(".rcbList .rcbItem").first.click()
+        page1.wait_for_timeout(1000)
     except Exception:
-        page1.locator("#RadAutoCompleteBoxGeo_Input").press("Enter")
-        page1.wait_for_timeout(1500)
+        inp.press("Enter")
+        page1.wait_for_timeout(2000)
     page1.get_by_role("button", name="Next -->").click()
 
 
@@ -160,14 +245,11 @@ def _fill_property_screens(page1: Page):
     page1.get_by_role("button", name="Next -->").click()
 
 
-def _fill_applicant(page1: Page):
+def _fill_applicant(page1: Page, insured_name: str):
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press("CapsLock")
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").press_sequentially("ICMTEST")
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").click()
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").press_sequentially("TESTER")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").fill(insured_name)
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").fill("")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").press_sequentially("01")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBDay").press_sequentially("01")
@@ -205,7 +287,56 @@ def _collect_quote_info(page1: Page):
     return QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly
 
 
-def _bind(page1: Page, QuoteNumber: str, pay_plan_val: str, pay_plan_label: str):
+def _fill_mortgagee_block(page1: Page, n: int):
+    """Fill mortgagee block n (1 or 2). Name is a required RadComboBox dropdown; selecting it
+    triggers a postback that populates the Street dropdown. Second Name and Loan # get
+    generated fake values. City/State/Zip are left alone (autofilled by the system)."""
+    pfx = "ctl00_ContentPlaceHolder1_ucBinderRequest"
+
+    # Open Name RadComboBox and pick a random item
+    name_arrow = f"#{pfx}_rcbMortgagee{n}Name1_Arrow"
+    name_items = f"#{pfx}_rcbMortgagee{n}Name1_DropDown .rcbItem"
+    page1.locator(name_arrow).click()
+    page1.wait_for_selector(name_items, timeout=5000)
+    items = page1.locator(name_items)
+    items.nth(random.randint(0, items.count() - 1)).click()
+    # Wait for postback to populate Street dropdown
+    page1.wait_for_timeout(2500)
+
+    # Fill Second Name with fake data
+    second_name = random.choice(MORTGAGEE_SECOND_NAMES)
+    page1.locator(f"#{pfx}_txtMortgagee{n}Name2").fill(second_name)
+
+    # Open Street RadComboBox (populated after Name postback) and pick first option
+    street_arrow = f"#{pfx}_rcbMortgagee{n}Street_Arrow"
+    street_items = f"#{pfx}_rcbMortgagee{n}Street_DropDown .rcbItem"
+    page1.locator(street_arrow).click()
+    try:
+        page1.wait_for_selector(street_items, timeout=5000)
+        page1.locator(street_items).first.click()
+        page1.wait_for_timeout(1000)
+    except Exception:
+        pass
+
+    # Fill Loan # with a generated value
+    loan_num = f"LN{random.randint(100000000, 999999999)}"
+    page1.locator(f"#{pfx}_txtMortgagee{n}LoanNumber").fill(loan_num)
+
+
+def _fill_alternate_payor(page1: Page):
+    """Fill all Alternate Payor fields with generated fake data. State is a dropdown."""
+    pfx = "ctl00_ContentPlaceHolder1_ucBinderRequest"
+    page1.locator(f"#{pfx}_txtBillingAlternatePayor1_1").fill(random.choice(AP_NAMES))
+    page1.locator(f"#{pfx}_txtBillingAlternatePayor2_1").fill(random.choice(AP_SECOND_NAMES))
+    page1.locator(f"#{pfx}_txtBillingLoanNumber_1").fill(f"LN{random.randint(100000000, 999999999)}")
+    page1.locator(f"#{pfx}_txtBillingStreet_1").fill(random.choice(AP_STREETS))
+    page1.locator(f"#{pfx}_txtBillingCity_1").fill(random.choice(AP_CITIES))
+    page1.locator(f"#{pfx}_ddlBillingState_1").select_option(random.choice(US_STATES))
+    page1.locator(f"#{pfx}_txtBillingZip_1").fill(str(random.randint(10000, 99999)))
+    page1.locator(f"#{pfx}_txtBillingZip4_1").fill(str(random.randint(1000, 9999)))
+
+
+def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pay_plan_label: str, autopay: bool):
     try:
         page1.locator(f'input[type="radio"][value="{QuoteNumber}"]').first.check(timeout=5000)
     except Exception:
@@ -217,14 +348,32 @@ def _bind(page1: Page, QuoteNumber: str, pay_plan_val: str, pay_plan_label: str)
         page1.get_by_role("button", name="Continue", exact=True).click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1", timeout=30000)
-    eff_date = datetime.today().strftime('%m/%d/%Y')
+    eff_date = random.choice(EFFECTIVE_DATES)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
-    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
+    page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option(bill_to_val)
+    # Wait for postback triggered by Bill To selection
+    page1.wait_for_timeout(2000)
+    if bill_to_val == "1":
+        _fill_mortgagee_block(page1, 1)
+        if random.choice([True, False]):
+            _fill_mortgagee_block(page1, 2)
+    elif bill_to_val == "2":
+        _fill_alternate_payor(page1)
     try:
         page1.locator("#ddlPaymentPlan1").select_option(pay_plan_val)
     except Exception:
         pytest.skip(f"Pay plan '{pay_plan_label}' not available for this product")
     print(f'Selected Pay Plan: {pay_plan_label}')
+
+    # Handle autopay toggle for non-Monthly plans (Monthly always has autopay pre-selected)
+    if pay_plan_label != "Monthly":
+        autopay_chk = page1.locator("[id*='chkAutoPay']")
+        if autopay_chk.count() > 0 and autopay_chk.is_visible():
+            if autopay:
+                autopay_chk.check()
+            else:
+                autopay_chk.uncheck()
+
     page1.get_by_role("button", name="Request to Bind").click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue", timeout=30000)
@@ -242,12 +391,12 @@ def _bind(page1: Page, QuoteNumber: str, pay_plan_val: str, pay_plan_label: str)
 # Auros HO-3 — Quote to Bind
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("pay_plan_val,pay_plan_label", [
-    ("0", "Full Pay"),
-])
-def test_bind_auros_ho3(page: Page, snap, pay_plan_val: str, pay_plan_label: str) -> None:
+@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", BIND_SCENARIOS)
+def test_bind_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                        pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
+    insured_name = f"Auros {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
 
     page1 = _login_and_open_quote(page)
     snap(page1, "03_welcome")
@@ -284,7 +433,7 @@ def test_bind_auros_ho3(page: Page, snap, pay_plan_val: str, pay_plan_label: str
     _fill_property_screens(page1)
     snap(page1, "09_wind_mitigation")
 
-    _fill_applicant(page1)
+    _fill_applicant(page1, insured_name)
     snap(page1, "10_applicant")
 
     # General information — answer all visible questions; ctl21 (wind mitigation) is conditional
@@ -318,25 +467,26 @@ def test_bind_auros_ho3(page: Page, snap, pay_plan_val: str, pay_plan_label: str
     QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
 
     BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
-        page1, QuoteNumber, pay_plan_val, pay_plan_label
+        page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
     )
     snap(page1, "14_binder_detail")
 
-    _append_to_xlsx([USERNAME, address, f"Auros HO-3 ({pay_plan_label})", ProductName, coverage_a,
+    scenario_label = f"Auros HO-3 | {bill_to_label} | {insured_name}"
+    _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
                      QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                     "", "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
 
 
 # ---------------------------------------------------------------------------
-# Auros HO-3T — Quote to Bind  (mirrors FG HO-3T: Occupancy = Tenant Only)
+# Auros HO-3T — Quote to Bind  (Occupancy = Tenant Only)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("pay_plan_val,pay_plan_label", [
-    ("0", "Full Pay"),
-])
-def test_bind_auros_ho3t(page: Page, snap, pay_plan_val: str, pay_plan_label: str) -> None:
+@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", BIND_SCENARIOS)
+def test_bind_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                         pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
+    insured_name = f"Auros {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
     page1 = None
     try:
         page1 = _login_and_open_quote(page)
@@ -379,7 +529,7 @@ def test_bind_auros_ho3t(page: Page, snap, pay_plan_val: str, pay_plan_label: st
         snap(page1, "09_wind_mitigation")
 
         try:
-            _fill_applicant(page1)
+            _fill_applicant(page1, insured_name)
         except Exception as e:
             pytest.skip(f"Applicant screen failed for '{address}' – {e}")
         snap(page1, "10_applicant")
@@ -423,13 +573,14 @@ def test_bind_auros_ho3t(page: Page, snap, pay_plan_val: str, pay_plan_label: st
             pytest.skip(f"Quote returned '{ProductName}' instead of HO-3T for '{address}' – skipping bind")
 
         BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
-            page1, QuoteNumber, pay_plan_val, pay_plan_label
+            page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
         )
         snap(page1, "14_binder_detail")
 
-        _append_to_xlsx([USERNAME, address, f"Auros HO-3T ({pay_plan_label})", ProductName, coverage_a,
+        scenario_label = f"Auros HO-3T | {bill_to_label} | {insured_name}"
+        _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
                          QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                         "", "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
     finally:
         if page1 is not None:
             try:
