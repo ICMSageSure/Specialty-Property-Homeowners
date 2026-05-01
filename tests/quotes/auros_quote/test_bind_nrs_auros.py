@@ -7,7 +7,7 @@ from openpyxl import load_workbook, Workbook
 
 USERNAME = os.environ.get("AUROS_USERNAME", "icortesmarquez@geovera.com")
 WHOLESALER = "HULL001"
-PRODUCER_NUMBER = "HLDAWNF1"
+PRODUCERS = [("HLKAREN", "01"), ("ANNIE", "0134")]
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "nrs", "nrs_bind_results.xlsx")
 
 EFFECTIVE_DATES = ["05/04/2026", "05/15/2026"]
@@ -95,8 +95,12 @@ BIND_SCENARIOS = [
     ("2", "Alternate Payor", "3", "Monthly",  True),
 ]
 
-HO3_SCENARIOS  = BIND_SCENARIOS[0::2]   # 11 scenarios: even indices
-HO3T_SCENARIOS = BIND_SCENARIOS[1::2]   # 10 scenarios: odd indices
+# 3 scenarios per product, one per Bill To type — all using HLKAREN-01 (ANNIE login does not work)
+_HO3_BASE = [BIND_SCENARIOS[0], BIND_SCENARIOS[7], BIND_SCENARIOS[14]]   # Applicant / Mortgagee / AltPayor — Full Pay no auto
+_HO3T_BASE = [BIND_SCENARIOS[1], BIND_SCENARIOS[8], BIND_SCENARIOS[15]]  # Applicant / Mortgagee / AltPayor — Full Pay auto
+
+HO3_SCENARIOS  = [s + PRODUCERS[0] for s in _HO3_BASE]
+HO3T_SCENARIOS = [s + PRODUCERS[0] for s in _HO3T_BASE]
 
 
 def _append_to_xlsx(row: list):
@@ -173,7 +177,7 @@ FL_ADDRESSES = [
 ]
 
 
-def _login_and_open_quote(page: Page):
+def _login_and_open_quote(page: Page, producer_code: str, sub_code: str):
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
     page.get_by_role("textbox", name="Policyholder Email or Agent").fill(USERNAME)
@@ -187,10 +191,11 @@ def _login_and_open_quote(page: Page):
     page1 = page1_info.value
     page1.wait_for_selector("#ctl00_WelcomeUserControl_ddlWholesaler", timeout=30000)
     page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option(WHOLESALER)
-    page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").fill(PRODUCER_NUMBER)
+    page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").fill(producer_code)
+    page1.locator("#ctl00_WelcomeUserControl_txtSubProducerNumber").fill(sub_code)
     page1.locator("#ctl00_WelcomeUserControl_btnUpdateQuotingAs").click()
-    page1.wait_for_selector("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId", timeout=30000)
-    page1.locator("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId").click()
+    page1.wait_for_selector("[id*='dgUserList'][id$='_btnId']", timeout=30000)
+    page1.locator("[id*='dgUserList'][id$='_btnId']").first.click()
     page1.wait_for_timeout(3000)
     return page1
 
@@ -397,14 +402,15 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
 # NRS Auros HO-3 — Quote to Bind
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3_SCENARIOS)
+@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3_SCENARIOS)
 def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
-                             pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
+                             pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                             producer_code: str, sub_code: str) -> None:
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
     insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
 
-    page1 = _login_and_open_quote(page)
+    page1 = _login_and_open_quote(page, producer_code, sub_code)
     snap(page1, "03_welcome")
 
     _enter_address(page1, address)
@@ -479,7 +485,7 @@ def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: s
 
     scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
     _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
-                     WHOLESALER, PRODUCER_NUMBER,
+                     WHOLESALER, f"{producer_code}-{sub_code}",
                      QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
                      insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
 
@@ -488,15 +494,16 @@ def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: s
 # NRS Auros HO-3T — Quote to Bind  (Occupancy = Tenant Only)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3T_SCENARIOS)
+@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3T_SCENARIOS)
 def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
-                              pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
+                              pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                              producer_code: str, sub_code: str) -> None:
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
     insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
     page1 = None
     try:
-        page1 = _login_and_open_quote(page)
+        page1 = _login_and_open_quote(page, producer_code, sub_code)
         snap(page1, "03_welcome")
 
         _enter_address(page1, address)
@@ -586,7 +593,7 @@ def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: 
 
         scenario_label = f"NRS Auros HO-3T | {bill_to_label} | {insured_name}"
         _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
-                         WHOLESALER, PRODUCER_NUMBER,
+                         WHOLESALER, f"{producer_code}-{sub_code}",
                          QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
                          insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
     finally:

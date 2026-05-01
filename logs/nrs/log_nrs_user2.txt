@@ -6,46 +6,32 @@ metadata: {'Python': '3.13.2', 'Platform': 'Windows-10-10.0.19042-SP0', 'Package
 rootdir: C:\Users\icortesmarquez\Desktop\Playwright\HO_PW
 configfile: pytest.ini
 plugins: anyio-4.12.0, base-url-2.1.0, html-4.1.1, metadata-3.1.1, playwright-0.7.0, repeat-0.9.4, xdist-3.8.0
-collecting ... collected 21 items
+collecting ... collected 6 items
 
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-0-Applicant-0-Full Pay-False] PASSED [  4%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-0-Applicant-1-3 Pay-False] PASSED [  9%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-0-Applicant-2-4 Pay-False] PASSED [ 14%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-0-Applicant-3-Monthly-True] PASSED [ 19%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-1-Mortgagee-0-Full Pay-True] PASSED [ 23%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-1-Mortgagee-1-3 Pay-True] SKIPPED [ 28%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-1-Mortgagee-2-4 Pay-True] SKIPPED [ 33%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-0-Full Pay-False] PASSED [ 38%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-1-3 Pay-False] PASSED [ 42%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-2-4 Pay-False] PASSED [ 47%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-3-Monthly-True] FAILED [ 52%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-0-Applicant-0-Full Pay-True] PASSED [ 57%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-0-Applicant-1-3 Pay-True] SKIPPED [ 61%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-0-Applicant-2-4 Pay-True] PASSED [ 66%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-1-Mortgagee-0-Full Pay-False] SKIPPED [ 71%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-1-Mortgagee-1-3 Pay-False] SKIPPED [ 76%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-1-Mortgagee-2-4 Pay-False] SKIPPED [ 80%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-1-Mortgagee-3-Monthly-True] SKIPPED [ 85%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-2-Alternate Payor-0-Full Pay-True] PASSED [ 90%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-2-Alternate Payor-1-3 Pay-True] SKIPPED [ 95%]
-tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-2-Alternate Payor-2-4 Pay-True] PASSED [100%]
+tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-0-Applicant-0-Full Pay-False-HLKAREN-01] FAILED [ 16%]
+tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-1-Mortgagee-0-Full Pay-False-HLKAREN-01] FAILED [ 33%]
+tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-0-Full Pay-False-HLKAREN-01] FAILED [ 50%]
+tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-0-Applicant-0-Full Pay-True-HLKAREN-01] FAILED [ 66%]
+tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-1-Mortgagee-0-Full Pay-True-HLKAREN-01] FAILED [ 83%]
+tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-2-Alternate Payor-0-Full Pay-True-HLKAREN-01] FAILED [100%]
 
 ================================== FAILURES ===================================
-_____ test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-3-Monthly-True] ______
+__ test_bind_nrs_auros_ho3[chromium-0-Applicant-0-Full Pay-False-HLKAREN-01] __
 
 page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
-snap = <function snap.<locals>.take at 0x00000226E2E471A0>, bill_to_val = '2'
-bill_to_label = 'Alternate Payor', pay_plan_val = '3'
-pay_plan_label = 'Monthly', autopay = True
+snap = <function snap.<locals>.take at 0x0000018F448A6FC0>, bill_to_val = '0'
+bill_to_label = 'Applicant', pay_plan_val = '0', pay_plan_label = 'Full Pay'
+autopay = False, producer_code = 'HLKAREN', sub_code = '01'
 
-    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3_SCENARIOS)
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3_SCENARIOS)
     def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
-                                 pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
+                                 pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                                 producer_code: str, sub_code: str) -> None:
         address = random.choice(FL_ADDRESSES)
         coverage_a = "800,000"
         insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
     
-        page1 = _login_and_open_quote(page)
+        page1 = _login_and_open_quote(page, producer_code, sub_code)
         snap(page1, "03_welcome")
     
         _enter_address(page1, address)
@@ -92,22 +78,629 @@ pay_plan_label = 'Monthly', autopay = True
         wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
         if wind_mit_q.count() > 0:
             wind_mit_q.select_option("True")
->       page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+        page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+        for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+            loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+            if loc.count() > 0:
+                loc.check()
+        snap(page1, "11_questions")
+        page1.get_by_role("button", name="Submit Quote Request").click()
+        page1.wait_for_timeout(2000)
+    
+        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+        if ineligible_msgs.count() > 0:
+            pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
+        try:
+            page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+        except Exception:
+            page_text = page1.locator("body").inner_text()
+            pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
+        snap(page1, "12_quote_results")
+    
+        QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    
+        BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+            page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
+        )
+        snap(page1, "14_binder_detail")
+    
+        scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
+>       _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
+                         WHOLESALER, f"{producer_code}-{sub_code}",
+                         QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
 
-tests\quotes\auros_quote\test_bind_nrs_auros.py:454: 
+tests\quotes\auros_quote\test_bind_nrs_auros.py:487: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\sync_api\_generated.py:15507: in click
+tests\quotes\auros_quote\test_bind_nrs_auros.py:132: in _append_to_xlsx
+    wb.save(path)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\workbook\workbook.py:386: in save
+    save_workbook(self, filename)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\writer\excel.py:291: in save_workbook
+    archive = ZipFile(filename, 'w', ZIP_DEFLATED, allowZip64=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <zipfile.ZipFile [closed]>
+file = 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+mode = 'w', compression = 8, allowZip64 = True, compresslevel = None
+
+    def __init__(self, file, mode="r", compression=ZIP_STORED, allowZip64=True,
+                 compresslevel=None, *, strict_timestamps=True, metadata_encoding=None):
+        """Open the ZIP file with mode read 'r', write 'w', exclusive create 'x',
+        or append 'a'."""
+        if mode not in ('r', 'w', 'x', 'a'):
+            raise ValueError("ZipFile requires mode 'r', 'w', 'x', or 'a'")
+    
+        _check_compression(compression)
+    
+        self._allowZip64 = allowZip64
+        self._didModify = False
+        self.debug = 0  # Level of printing: 0 through 3
+        self.NameToInfo = {}    # Find file info given name
+        self.filelist = []      # List of ZipInfo instances for archive
+        self.compression = compression  # Method of compression
+        self.compresslevel = compresslevel
+        self.mode = mode
+        self.pwd = None
+        self._comment = b''
+        self._strict_timestamps = strict_timestamps
+        self.metadata_encoding = metadata_encoding
+    
+        # Check that we don't try to write with nonconforming codecs
+        if self.metadata_encoding and mode != 'r':
+            raise ValueError(
+                "metadata_encoding is only supported for reading files")
+    
+        # Check if we were passed a file-like object
+        if isinstance(file, os.PathLike):
+            file = os.fspath(file)
+        if isinstance(file, str):
+            # No, it's a filename
+            self._filePassed = 0
+            self.filename = file
+            modeDict = {'r' : 'rb', 'w': 'w+b', 'x': 'x+b', 'a' : 'r+b',
+                        'r+b': 'w+b', 'w+b': 'wb', 'x+b': 'xb'}
+            filemode = modeDict[mode]
+            while True:
+                try:
+>                   self.fp = io.open(file, filemode)
+E                   PermissionError: [Errno 13] Permission denied: 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\zipfile\__init__.py:1367: PermissionError
+---------------------------- Captured stdout call -----------------------------
+Replacement Cost: $449,819.00
+Product: HO-3  |  Quote: XA00000316
+Full Pay: $3,187.70 | 3-Pay: $1,427.30 | 4-Pay: $987.20 | Monthly: $742.70
+Selected Pay Plan: Full Pay
+Binder: AU60100029 | Bill To: Applicant | Plan: Full Pay | Eff: 05/15/2026 | Due: $3,187.70
+__ test_bind_nrs_auros_ho3[chromium-1-Mortgagee-0-Full Pay-False-HLKAREN-01] __
+
+page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
+snap = <function snap.<locals>.take at 0x0000018F44AC79C0>, bill_to_val = '1'
+bill_to_label = 'Mortgagee', pay_plan_val = '0', pay_plan_label = 'Full Pay'
+autopay = False, producer_code = 'HLKAREN', sub_code = '01'
+
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3_SCENARIOS)
+    def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                                 pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                                 producer_code: str, sub_code: str) -> None:
+        address = random.choice(FL_ADDRESSES)
+        coverage_a = "800,000"
+        insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+    
+        page1 = _login_and_open_quote(page, producer_code, sub_code)
+        snap(page1, "03_welcome")
+    
+        _enter_address(page1, address)
+        snap(page1, "04_address")
+    
+        # Select only Auros HO-3; uncheck the other products if visible
+        if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
+            page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
+        if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+            page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+        if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+            page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+        page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+        page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+        snap(page1, "05_coverages")
+        if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+        if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+        page1.get_by_role("button", name="Next -->").click()
+        page1.wait_for_timeout(2000)
+    
+        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+        if ineligible_msgs.count() > 0:
+            pytest.skip(f"Address '{address}' ineligible for Auros HO-3 – {ineligible_msgs.first.inner_text().strip()}")
+        try:
+            page1.wait_for_selector("#ddlConstructionType", timeout=10000)
+        except Exception:
+            page_text = page1.locator("body").inner_text()
+            pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+    
+        _fill_property_screens(page1)
+        snap(page1, "09_wind_mitigation")
+    
+        _fill_applicant(page1, insured_name)
+        snap(page1, "10_applicant")
+    
+        # General information — answer all visible questions; ctl21 (wind mitigation) is conditional
+        q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+        for i in range(q_count):
+            loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+            if loc.count() > 0:
+                loc.select_option("False")
+        wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+        if wind_mit_q.count() > 0:
+            wind_mit_q.select_option("True")
+        page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+        for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+            loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+            if loc.count() > 0:
+                loc.check()
+        snap(page1, "11_questions")
+        page1.get_by_role("button", name="Submit Quote Request").click()
+        page1.wait_for_timeout(2000)
+    
+        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+        if ineligible_msgs.count() > 0:
+            pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
+        try:
+            page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+        except Exception:
+            page_text = page1.locator("body").inner_text()
+            pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
+        snap(page1, "12_quote_results")
+    
+        QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    
+        BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+            page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
+        )
+        snap(page1, "14_binder_detail")
+    
+        scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
+>       _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
+                         WHOLESALER, f"{producer_code}-{sub_code}",
+                         QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+
+tests\quotes\auros_quote\test_bind_nrs_auros.py:487: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\quotes\auros_quote\test_bind_nrs_auros.py:132: in _append_to_xlsx
+    wb.save(path)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\workbook\workbook.py:386: in save
+    save_workbook(self, filename)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\writer\excel.py:291: in save_workbook
+    archive = ZipFile(filename, 'w', ZIP_DEFLATED, allowZip64=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <zipfile.ZipFile [closed]>
+file = 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+mode = 'w', compression = 8, allowZip64 = True, compresslevel = None
+
+    def __init__(self, file, mode="r", compression=ZIP_STORED, allowZip64=True,
+                 compresslevel=None, *, strict_timestamps=True, metadata_encoding=None):
+        """Open the ZIP file with mode read 'r', write 'w', exclusive create 'x',
+        or append 'a'."""
+        if mode not in ('r', 'w', 'x', 'a'):
+            raise ValueError("ZipFile requires mode 'r', 'w', 'x', or 'a'")
+    
+        _check_compression(compression)
+    
+        self._allowZip64 = allowZip64
+        self._didModify = False
+        self.debug = 0  # Level of printing: 0 through 3
+        self.NameToInfo = {}    # Find file info given name
+        self.filelist = []      # List of ZipInfo instances for archive
+        self.compression = compression  # Method of compression
+        self.compresslevel = compresslevel
+        self.mode = mode
+        self.pwd = None
+        self._comment = b''
+        self._strict_timestamps = strict_timestamps
+        self.metadata_encoding = metadata_encoding
+    
+        # Check that we don't try to write with nonconforming codecs
+        if self.metadata_encoding and mode != 'r':
+            raise ValueError(
+                "metadata_encoding is only supported for reading files")
+    
+        # Check if we were passed a file-like object
+        if isinstance(file, os.PathLike):
+            file = os.fspath(file)
+        if isinstance(file, str):
+            # No, it's a filename
+            self._filePassed = 0
+            self.filename = file
+            modeDict = {'r' : 'rb', 'w': 'w+b', 'x': 'x+b', 'a' : 'r+b',
+                        'r+b': 'w+b', 'w+b': 'wb', 'x+b': 'xb'}
+            filemode = modeDict[mode]
+            while True:
+                try:
+>                   self.fp = io.open(file, filemode)
+E                   PermissionError: [Errno 13] Permission denied: 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\zipfile\__init__.py:1367: PermissionError
+---------------------------- Captured stdout call -----------------------------
+Replacement Cost: $571,010.00
+Product: HO-3  |  Quote: XA00000318
+Full Pay: $4,527.50 | 3-Pay: $2,001.50 | 4-Pay: $1,370.00 | Monthly: $1,019.17
+Selected Pay Plan: Full Pay
+Binder: AU60100031 | Bill To: Mortgagee | Plan: Full Pay | Eff: 05/15/2026 | Due: $4,527.50
+_ test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-0-Full Pay-False-HLKAREN-01] _
+
+page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
+snap = <function snap.<locals>.take at 0x0000018F44BBEDE0>, bill_to_val = '2'
+bill_to_label = 'Alternate Payor', pay_plan_val = '0'
+pay_plan_label = 'Full Pay', autopay = False, producer_code = 'HLKAREN'
+sub_code = '01'
+
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3_SCENARIOS)
+    def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                                 pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                                 producer_code: str, sub_code: str) -> None:
+        address = random.choice(FL_ADDRESSES)
+        coverage_a = "800,000"
+        insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+    
+        page1 = _login_and_open_quote(page, producer_code, sub_code)
+        snap(page1, "03_welcome")
+    
+        _enter_address(page1, address)
+        snap(page1, "04_address")
+    
+        # Select only Auros HO-3; uncheck the other products if visible
+        if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
+            page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
+        if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+            page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+        if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+            page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+        page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+        page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+        snap(page1, "05_coverages")
+        if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+        if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+        page1.get_by_role("button", name="Next -->").click()
+        page1.wait_for_timeout(2000)
+    
+        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+        if ineligible_msgs.count() > 0:
+            pytest.skip(f"Address '{address}' ineligible for Auros HO-3 – {ineligible_msgs.first.inner_text().strip()}")
+        try:
+            page1.wait_for_selector("#ddlConstructionType", timeout=10000)
+        except Exception:
+            page_text = page1.locator("body").inner_text()
+            pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+    
+        _fill_property_screens(page1)
+        snap(page1, "09_wind_mitigation")
+    
+        _fill_applicant(page1, insured_name)
+        snap(page1, "10_applicant")
+    
+        # General information — answer all visible questions; ctl21 (wind mitigation) is conditional
+        q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+        for i in range(q_count):
+            loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+            if loc.count() > 0:
+                loc.select_option("False")
+        wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+        if wind_mit_q.count() > 0:
+            wind_mit_q.select_option("True")
+        page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+        for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+            loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+            if loc.count() > 0:
+                loc.check()
+        snap(page1, "11_questions")
+        page1.get_by_role("button", name="Submit Quote Request").click()
+        page1.wait_for_timeout(2000)
+    
+        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+        if ineligible_msgs.count() > 0:
+            pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
+        try:
+            page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+        except Exception:
+            page_text = page1.locator("body").inner_text()
+            pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
+        snap(page1, "12_quote_results")
+    
+        QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    
+        BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+            page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
+        )
+        snap(page1, "14_binder_detail")
+    
+        scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
+>       _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
+                         WHOLESALER, f"{producer_code}-{sub_code}",
+                         QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+
+tests\quotes\auros_quote\test_bind_nrs_auros.py:487: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\quotes\auros_quote\test_bind_nrs_auros.py:132: in _append_to_xlsx
+    wb.save(path)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\workbook\workbook.py:386: in save
+    save_workbook(self, filename)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\writer\excel.py:291: in save_workbook
+    archive = ZipFile(filename, 'w', ZIP_DEFLATED, allowZip64=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <zipfile.ZipFile [closed]>
+file = 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+mode = 'w', compression = 8, allowZip64 = True, compresslevel = None
+
+    def __init__(self, file, mode="r", compression=ZIP_STORED, allowZip64=True,
+                 compresslevel=None, *, strict_timestamps=True, metadata_encoding=None):
+        """Open the ZIP file with mode read 'r', write 'w', exclusive create 'x',
+        or append 'a'."""
+        if mode not in ('r', 'w', 'x', 'a'):
+            raise ValueError("ZipFile requires mode 'r', 'w', 'x', or 'a'")
+    
+        _check_compression(compression)
+    
+        self._allowZip64 = allowZip64
+        self._didModify = False
+        self.debug = 0  # Level of printing: 0 through 3
+        self.NameToInfo = {}    # Find file info given name
+        self.filelist = []      # List of ZipInfo instances for archive
+        self.compression = compression  # Method of compression
+        self.compresslevel = compresslevel
+        self.mode = mode
+        self.pwd = None
+        self._comment = b''
+        self._strict_timestamps = strict_timestamps
+        self.metadata_encoding = metadata_encoding
+    
+        # Check that we don't try to write with nonconforming codecs
+        if self.metadata_encoding and mode != 'r':
+            raise ValueError(
+                "metadata_encoding is only supported for reading files")
+    
+        # Check if we were passed a file-like object
+        if isinstance(file, os.PathLike):
+            file = os.fspath(file)
+        if isinstance(file, str):
+            # No, it's a filename
+            self._filePassed = 0
+            self.filename = file
+            modeDict = {'r' : 'rb', 'w': 'w+b', 'x': 'x+b', 'a' : 'r+b',
+                        'r+b': 'w+b', 'w+b': 'wb', 'x+b': 'xb'}
+            filemode = modeDict[mode]
+            while True:
+                try:
+>                   self.fp = io.open(file, filemode)
+E                   PermissionError: [Errno 13] Permission denied: 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\zipfile\__init__.py:1367: PermissionError
+---------------------------- Captured stdout call -----------------------------
+Replacement Cost: $439,961.00
+Product: HO-3  |  Quote: XA00000320
+Full Pay: $3,251.75 | 3-Pay: $1,454.75 | 4-Pay: $1,005.50 | Monthly: $755.92
+Selected Pay Plan: Full Pay
+Binder: AU60100033 | Bill To: Alternate Payor | Plan: Full Pay | Eff: 05/15/2026 | Due: $3,251.75
+__ test_bind_nrs_auros_ho3t[chromium-0-Applicant-0-Full Pay-True-HLKAREN-01] __
+
+page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
+snap = <function snap.<locals>.take at 0x0000018F44CE4720>, bill_to_val = '0'
+bill_to_label = 'Applicant', pay_plan_val = '0', pay_plan_label = 'Full Pay'
+autopay = True, producer_code = 'HLKAREN', sub_code = '01'
+
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3T_SCENARIOS)
+    def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                                  pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                                  producer_code: str, sub_code: str) -> None:
+        address = random.choice(FL_ADDRESSES)
+        coverage_a = "800,000"
+        insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+        page1 = None
+        try:
+            page1 = _login_and_open_quote(page, producer_code, sub_code)
+            snap(page1, "03_welcome")
+    
+            _enter_address(page1, address)
+            page1.wait_for_timeout(2000)
+            snap(page1, "04_address")
+    
+            # Set Occupancy Type to Tenant Only; Auros HO-3 produces HO-3T output under Tenant Only
+            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
+            page1.wait_for_timeout(1500)
+            if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+                page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+            if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+                page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+            snap(page1, "05_coverages")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+            page1.get_by_role("button", name="Next -->").click()
+            page1.wait_for_timeout(2000)
+    
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                pytest.skip(f"Address '{address}' ineligible for Auros HO-3T – {ineligible_msgs.first.inner_text().strip()}")
+            try:
+                page1.wait_for_selector("#ddlConstructionType", timeout=30000)
+            except Exception:
+                page_text = page1.locator("body").inner_text()
+                pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+    
+            try:
+                _fill_property_screens(page1)
+            except Exception as e:
+                pytest.skip(f"Property screens failed for '{address}' – {e}")
+            snap(page1, "09_wind_mitigation")
+    
+            try:
+                _fill_applicant(page1, insured_name)
+            except Exception as e:
+                pytest.skip(f"Applicant screen failed for '{address}' – {e}")
+            snap(page1, "10_applicant")
+    
+            # General information — answer all visible questions; ctl17 (tenant) and ctl21 (roof materials) are conditional
+            q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+            for i in range(q_count):
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+                if loc.count() > 0:
+                    loc.select_option("False")
+            tenant_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl17_ddlQuestions")
+            if tenant_q.count() > 0:
+                tenant_q.select_option("True")
+            roof_mat_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+            if roof_mat_q.count() > 0:
+                roof_mat_q.select_option("False")
+            page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+            tenant_chk = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkTenantLiability")
+            if tenant_chk.count() > 0:
+                tenant_chk.check()
+            for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+                if loc.count() > 0:
+                    loc.check()
+            snap(page1, "11_questions")
+            page1.get_by_role("button", name="Submit Quote Request").click()
+            page1.wait_for_timeout(2000)
+    
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
+            try:
+                page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+            except Exception:
+                page_text = page1.locator("body").inner_text()
+                pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
+            snap(page1, "12_quote_results")
+    
+            QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+            if not any(x in ProductName for x in ("3T", "HO-3T", "Tenant")):
+                pytest.skip(f"Quote returned '{ProductName}' instead of HO-3T for '{address}' – skipping bind")
+    
+            BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+                page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
+            )
+            snap(page1, "14_binder_detail")
+    
+            scenario_label = f"NRS Auros HO-3T | {bill_to_label} | {insured_name}"
+>           _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
+                             WHOLESALER, f"{producer_code}-{sub_code}",
+                             QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                             insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+
+tests\quotes\auros_quote\test_bind_nrs_auros.py:595: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\quotes\auros_quote\test_bind_nrs_auros.py:132: in _append_to_xlsx
+    wb.save(path)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\workbook\workbook.py:386: in save
+    save_workbook(self, filename)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\writer\excel.py:291: in save_workbook
+    archive = ZipFile(filename, 'w', ZIP_DEFLATED, allowZip64=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <zipfile.ZipFile [closed]>
+file = 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+mode = 'w', compression = 8, allowZip64 = True, compresslevel = None
+
+    def __init__(self, file, mode="r", compression=ZIP_STORED, allowZip64=True,
+                 compresslevel=None, *, strict_timestamps=True, metadata_encoding=None):
+        """Open the ZIP file with mode read 'r', write 'w', exclusive create 'x',
+        or append 'a'."""
+        if mode not in ('r', 'w', 'x', 'a'):
+            raise ValueError("ZipFile requires mode 'r', 'w', 'x', or 'a'")
+    
+        _check_compression(compression)
+    
+        self._allowZip64 = allowZip64
+        self._didModify = False
+        self.debug = 0  # Level of printing: 0 through 3
+        self.NameToInfo = {}    # Find file info given name
+        self.filelist = []      # List of ZipInfo instances for archive
+        self.compression = compression  # Method of compression
+        self.compresslevel = compresslevel
+        self.mode = mode
+        self.pwd = None
+        self._comment = b''
+        self._strict_timestamps = strict_timestamps
+        self.metadata_encoding = metadata_encoding
+    
+        # Check that we don't try to write with nonconforming codecs
+        if self.metadata_encoding and mode != 'r':
+            raise ValueError(
+                "metadata_encoding is only supported for reading files")
+    
+        # Check if we were passed a file-like object
+        if isinstance(file, os.PathLike):
+            file = os.fspath(file)
+        if isinstance(file, str):
+            # No, it's a filename
+            self._filePassed = 0
+            self.filename = file
+            modeDict = {'r' : 'rb', 'w': 'w+b', 'x': 'x+b', 'a' : 'r+b',
+                        'r+b': 'w+b', 'w+b': 'wb', 'x+b': 'xb'}
+            filemode = modeDict[mode]
+            while True:
+                try:
+>                   self.fp = io.open(file, filemode)
+E                   PermissionError: [Errno 13] Permission denied: 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\zipfile\__init__.py:1367: PermissionError
+---------------------------- Captured stdout call -----------------------------
+Replacement Cost: $439,961.00
+Product: HO-3 Tenant  |  Quote: XA00000322
+Full Pay: $2,918.90 | 3-Pay: $1,312.10 | 4-Pay: $910.40 | Monthly: $687.23
+Selected Pay Plan: Full Pay
+Binder: AU60100035 | Bill To: Applicant | Plan: Full Pay | Eff: 05/04/2026 | Due: $2,918.90
+__ test_bind_nrs_auros_ho3t[chromium-1-Mortgagee-0-Full Pay-True-HLKAREN-01] __
+
+page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
+snap = <function snap.<locals>.take at 0x0000018F44BBDB20>, bill_to_val = '1'
+bill_to_label = 'Mortgagee', pay_plan_val = '0', pay_plan_label = 'Full Pay'
+autopay = True, producer_code = 'HLKAREN', sub_code = '01'
+
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3T_SCENARIOS)
+    def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                                  pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                                  producer_code: str, sub_code: str) -> None:
+        address = random.choice(FL_ADDRESSES)
+        coverage_a = "800,000"
+        insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+        page1 = None
+        try:
+            page1 = _login_and_open_quote(page, producer_code, sub_code)
+            snap(page1, "03_welcome")
+    
+            _enter_address(page1, address)
+            page1.wait_for_timeout(2000)
+            snap(page1, "04_address")
+    
+            # Set Occupancy Type to Tenant Only; Auros HO-3 produces HO-3T output under Tenant Only
+>           page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
+
+tests\quotes\auros_quote\test_bind_nrs_auros.py:514: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\sync_api\_generated.py:17463: in select_option
     self._sync(
-..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_locator.py:160: in click
-    return await self._frame.click(self._selector, strict=True, **params)
-..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_frame.py:488: in click
-    await self._channel.send("click", locals_to_params(locals()))
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_locator.py:572: in select_option
+    return await self._frame.select_option(
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_frame.py:678: in select_option
+    return await self._channel.send("selectOption", params)
 ..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_connection.py:61: in send
     return await self._connection.wrap_api_call(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <playwright._impl._connection.Connection object at 0x00000226E21670E0>
-cb = <function Channel.send.<locals>.<lambda> at 0x00000226E2EA68E0>
+self = <playwright._impl._connection.Connection object at 0x0000018F442DB0E0>
+cb = <function Channel.send.<locals>.<lambda> at 0x0000018F44BBC5E0>
 is_internal = False
 
     async def wrap_api_call(
@@ -123,14 +716,191 @@ is_internal = False
             return await cb()
         except Exception as error:
 >           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
-E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
+E           playwright._impl._errors.TimeoutError: Locator.select_option: Timeout 30000ms exceeded.
 E           Call log:
-E             - waiting for get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first
+E             - waiting for locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType")
 
 ..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_connection.py:528: TimeoutError
+_ test_bind_nrs_auros_ho3t[chromium-2-Alternate Payor-0-Full Pay-True-HLKAREN-01] _
+
+page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
+snap = <function snap.<locals>.take at 0x0000018F44BDAC00>, bill_to_val = '2'
+bill_to_label = 'Alternate Payor', pay_plan_val = '0'
+pay_plan_label = 'Full Pay', autopay = True, producer_code = 'HLKAREN'
+sub_code = '01'
+
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay,producer_code,sub_code", HO3T_SCENARIOS)
+    def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                                  pay_plan_val: str, pay_plan_label: str, autopay: bool,
+                                  producer_code: str, sub_code: str) -> None:
+        address = random.choice(FL_ADDRESSES)
+        coverage_a = "800,000"
+        insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+        page1 = None
+        try:
+            page1 = _login_and_open_quote(page, producer_code, sub_code)
+            snap(page1, "03_welcome")
+    
+            _enter_address(page1, address)
+            page1.wait_for_timeout(2000)
+            snap(page1, "04_address")
+    
+            # Set Occupancy Type to Tenant Only; Auros HO-3 produces HO-3T output under Tenant Only
+            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
+            page1.wait_for_timeout(1500)
+            if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+                page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+            if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+                page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+            snap(page1, "05_coverages")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+            page1.get_by_role("button", name="Next -->").click()
+            page1.wait_for_timeout(2000)
+    
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                pytest.skip(f"Address '{address}' ineligible for Auros HO-3T – {ineligible_msgs.first.inner_text().strip()}")
+            try:
+                page1.wait_for_selector("#ddlConstructionType", timeout=30000)
+            except Exception:
+                page_text = page1.locator("body").inner_text()
+                pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+    
+            try:
+                _fill_property_screens(page1)
+            except Exception as e:
+                pytest.skip(f"Property screens failed for '{address}' – {e}")
+            snap(page1, "09_wind_mitigation")
+    
+            try:
+                _fill_applicant(page1, insured_name)
+            except Exception as e:
+                pytest.skip(f"Applicant screen failed for '{address}' – {e}")
+            snap(page1, "10_applicant")
+    
+            # General information — answer all visible questions; ctl17 (tenant) and ctl21 (roof materials) are conditional
+            q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+            for i in range(q_count):
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+                if loc.count() > 0:
+                    loc.select_option("False")
+            tenant_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl17_ddlQuestions")
+            if tenant_q.count() > 0:
+                tenant_q.select_option("True")
+            roof_mat_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+            if roof_mat_q.count() > 0:
+                roof_mat_q.select_option("False")
+            page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+            tenant_chk = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkTenantLiability")
+            if tenant_chk.count() > 0:
+                tenant_chk.check()
+            for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+                if loc.count() > 0:
+                    loc.check()
+            snap(page1, "11_questions")
+            page1.get_by_role("button", name="Submit Quote Request").click()
+            page1.wait_for_timeout(2000)
+    
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
+            try:
+                page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+            except Exception:
+                page_text = page1.locator("body").inner_text()
+                pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
+            snap(page1, "12_quote_results")
+    
+            QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+            if not any(x in ProductName for x in ("3T", "HO-3T", "Tenant")):
+                pytest.skip(f"Quote returned '{ProductName}' instead of HO-3T for '{address}' – skipping bind")
+    
+            BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+                page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
+            )
+            snap(page1, "14_binder_detail")
+    
+            scenario_label = f"NRS Auros HO-3T | {bill_to_label} | {insured_name}"
+>           _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
+                             WHOLESALER, f"{producer_code}-{sub_code}",
+                             QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                             insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+
+tests\quotes\auros_quote\test_bind_nrs_auros.py:595: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\quotes\auros_quote\test_bind_nrs_auros.py:132: in _append_to_xlsx
+    wb.save(path)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\workbook\workbook.py:386: in save
+    save_workbook(self, filename)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\openpyxl\writer\excel.py:291: in save_workbook
+    archive = ZipFile(filename, 'w', ZIP_DEFLATED, allowZip64=True)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <zipfile.ZipFile [closed]>
+file = 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+mode = 'w', compression = 8, allowZip64 = True, compresslevel = None
+
+    def __init__(self, file, mode="r", compression=ZIP_STORED, allowZip64=True,
+                 compresslevel=None, *, strict_timestamps=True, metadata_encoding=None):
+        """Open the ZIP file with mode read 'r', write 'w', exclusive create 'x',
+        or append 'a'."""
+        if mode not in ('r', 'w', 'x', 'a'):
+            raise ValueError("ZipFile requires mode 'r', 'w', 'x', or 'a'")
+    
+        _check_compression(compression)
+    
+        self._allowZip64 = allowZip64
+        self._didModify = False
+        self.debug = 0  # Level of printing: 0 through 3
+        self.NameToInfo = {}    # Find file info given name
+        self.filelist = []      # List of ZipInfo instances for archive
+        self.compression = compression  # Method of compression
+        self.compresslevel = compresslevel
+        self.mode = mode
+        self.pwd = None
+        self._comment = b''
+        self._strict_timestamps = strict_timestamps
+        self.metadata_encoding = metadata_encoding
+    
+        # Check that we don't try to write with nonconforming codecs
+        if self.metadata_encoding and mode != 'r':
+            raise ValueError(
+                "metadata_encoding is only supported for reading files")
+    
+        # Check if we were passed a file-like object
+        if isinstance(file, os.PathLike):
+            file = os.fspath(file)
+        if isinstance(file, str):
+            # No, it's a filename
+            self._filePassed = 0
+            self.filename = file
+            modeDict = {'r' : 'rb', 'w': 'w+b', 'x': 'x+b', 'a' : 'r+b',
+                        'r+b': 'w+b', 'w+b': 'wb', 'x+b': 'xb'}
+            filemode = modeDict[mode]
+            while True:
+                try:
+>                   self.fp = io.open(file, filemode)
+E                   PermissionError: [Errno 13] Permission denied: 'C:\\Users\\icortesmarquez\\Desktop\\Playwright\\HO_PW\\results\\nrs\\nrs_bind_results.xlsx'
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\zipfile\__init__.py:1367: PermissionError
 ---------------------------- Captured stdout call -----------------------------
-Replacement Cost: $446,700.00
+Replacement Cost: $513,678.00
+Product: HO-3 Tenant  |  Quote: XA00000324
+Full Pay: $3,448.10 | 3-Pay: $1,538.90 | 4-Pay: $1,061.60 | Monthly: $796.43
+Selected Pay Plan: Full Pay
+Binder: AU60100037 | Bill To: Alternate Payor | Plan: Full Pay | Eff: 05/04/2026 | Due: $3,448.10
 - Generated html report: file:///C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/scripts/../results/nrs/report_nrs_user2.html -
 =========================== short test summary info ===========================
-FAILED tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-3-Monthly-True]
-============ 1 failed, 12 passed, 8 skipped in 2424.10s (0:40:24) =============
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-0-Applicant-0-Full Pay-False-HLKAREN-01]
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-1-Mortgagee-0-Full Pay-False-HLKAREN-01]
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3[chromium-2-Alternate Payor-0-Full Pay-False-HLKAREN-01]
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-0-Applicant-0-Full Pay-True-HLKAREN-01]
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-1-Mortgagee-0-Full Pay-True-HLKAREN-01]
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros.py::test_bind_nrs_auros_ho3t[chromium-2-Alternate Payor-0-Full Pay-True-HLKAREN-01]
+======================== 6 failed in 809.79s (0:13:29) ========================

@@ -1,0 +1,81 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.2, pytest-8.3.5, pluggy-1.5.0 -- C:\Users\icortesmarquez\AppData\Local\Programs\Python\Python313\python.exe
+cachedir: .pytest_cache
+baseurl: https://tst.mygeosource.com/
+metadata: {'Python': '3.13.2', 'Platform': 'Windows-10-10.0.19042-SP0', 'Packages': {'pytest': '8.3.5', 'pluggy': '1.5.0'}, 'Plugins': {'anyio': '4.12.0', 'base-url': '2.1.0', 'html': '4.1.1', 'metadata': '3.1.1', 'playwright': '0.7.0', 'repeat': '0.9.4', 'xdist': '3.8.0'}, 'Base URL': 'https://tst.mygeosource.com/'}
+rootdir: C:\Users\icortesmarquez\Desktop\Playwright\HO_PW
+configfile: pytest.ini
+plugins: anyio-4.12.0, base-url-2.1.0, html-4.1.1, metadata-3.1.1, playwright-0.7.0, repeat-0.9.4, xdist-3.8.0
+collecting ... collected 5 items
+
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-0-Full Pay-False] PASSED [ 20%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-1-Mortgagee-0-Full Pay-False] PASSED [ 40%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-2-Alternate Payor-0-Full Pay-False] PASSED [ 60%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-0-Full Pay-True] FAILED [ 80%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-1-Mortgagee-0-Full Pay-True] PASSED [100%]
+
+================================== FAILURES ===================================
+____ test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-0-Full Pay-True] _____
+
+page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
+snap = <function snap.<locals>.take at 0x000001CCE52528E0>, bill_to_val = '0'
+bill_to_label = 'Applicant', pay_plan_val = '0', pay_plan_label = 'Full Pay'
+autopay = True
+
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3T_SCENARIOS)
+    def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                                        pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
+        address = random.choice(FL_ADDRESSES)
+        coverage_a = "800,000"
+        insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+        try:
+            page1, wholesaler, producer_code, sub_code = _login_and_open_quote(page)
+            snap(page1, "03_welcome")
+    
+            _enter_address(page1, address)
+            page1.wait_for_timeout(2000)
+            snap(page1, "04_address")
+    
+            # Set Occupancy Type to Tenant Only; Auros HO-3 produces HO-3T output under Tenant Only
+>           page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
+
+tests\quotes\auros_quote\test_bind_nrs_auros_agent.py:499: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\sync_api\_generated.py:17463: in select_option
+    self._sync(
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_locator.py:572: in select_option
+    return await self._frame.select_option(
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_frame.py:678: in select_option
+    return await self._channel.send("selectOption", params)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_connection.py:61: in send
+    return await self._connection.wrap_api_call(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <playwright._impl._connection.Connection object at 0x000001CCE38EB230>
+cb = <function Channel.send.<locals>.<lambda> at 0x000001CCE529AF20>
+is_internal = False
+
+    async def wrap_api_call(
+        self, cb: Callable[[], Any], is_internal: bool = False
+    ) -> Any:
+        if self._api_zone.get():
+            return await cb()
+        task = asyncio.current_task(self._loop)
+        st: List[inspect.FrameInfo] = getattr(task, "__pw_stack__", inspect.stack())
+        parsed_st = _extract_stack_trace_information_from_stack(st, is_internal)
+        self._api_zone.set(parsed_st)
+        try:
+            return await cb()
+        except Exception as error:
+>           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
+E           playwright._impl._errors.TimeoutError: Locator.select_option: Timeout 30000ms exceeded.
+E           Call log:
+E             - waiting for locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType")
+
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_connection.py:528: TimeoutError
+---------------------------- Captured stdout call -----------------------------
+Wholesaler:  | Producer: HLDAWNF1 | Sub: 
+- Generated html report: file:///C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/scripts/../results/nrs/report_nrs_agent2.html -
+=========================== short test summary info ===========================
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-0-Full Pay-True]
+=================== 1 failed, 4 passed in 555.33s (0:09:15) ===================
