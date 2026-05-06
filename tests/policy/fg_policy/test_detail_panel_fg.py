@@ -4,7 +4,7 @@ from pages.login_page import LoginPage
 from pages.fg_policy_detail_panel_page import FGPolicyDetailPanelPage
 
 USERNAME   = "icortesmarquez@geovera"
-POLICY_NUM = "GC50018511"
+POLICY_NUM = "GC60015733"
 STATE      = "FL"
 
 

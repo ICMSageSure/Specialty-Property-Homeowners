@@ -1,20 +1,21 @@
 import base64
+import os
 import pytest
 import shutil
 from pathlib import Path
 from datetime import datetime
-from playwright.sync_api import Page, expect
+from pages.login_page import LoginPage
 
 SCREENSHOTS_ROOT = Path(__file__).parent / "screenshots"
 MAX_RUNS = 3
+_INTERNAL_USERS = frozenset({"icortesmarquez@geovera", "tsicortesmarquez@geovera"})
 
-# Stores screenshot paths per test node ID so the HTML report hook can attach them
 _test_screenshots: dict[str, list[Path]] = {}
 
 
 @pytest.fixture(scope="session")
-def browser_context_args(browser_context_args, playwright):
-    return {"viewport": {"width":1920,"height":1080}}
+def browser_context_args(browser_context_args):
+    return {"viewport": {"width": 1920, "height": 1080}}
 
 
 @pytest.fixture(scope="session")
@@ -77,18 +78,17 @@ def screenshot_on_failure(page, request, snap):
         except Exception:
             pass
 
-@pytest.fixture(scope="session")
-def setUp(page):
-    login = Login(page)
-    login.navigate_to_login()
-    assert login.url, "BASE_URL is not set"
-    yield
-    page.close()
-
 
 @pytest.fixture
-def login(setUp, page):
-    login = Login(page)
-    login.enter_username(login.username)
-    login.enter_password(login.password)
-    return page
+def login(page):
+    def _login(username: str, password: str | None = None) -> None:
+        if password is None:
+            if username not in _INTERNAL_USERS:
+                raise ValueError(
+                    f"No password provided for '{username}'. "
+                    f"INTERNAL_PASSWORD only works for internal users. "
+                    f"Pass a password explicitly: login('{username}', 'your_password')"
+                )
+            password = os.environ["INTERNAL_PASSWORD"]
+        LoginPage(page).login(username, password)
+    return _login

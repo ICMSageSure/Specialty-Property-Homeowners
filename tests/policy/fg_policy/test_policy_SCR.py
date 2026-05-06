@@ -6,7 +6,7 @@ from pages.login_page import LoginPage
 from pages.policy_request_changes_page import PolicyRequestChangesPage, PolicyChangesConfirmationPage
 
 USERNAME = "icortesmarquez@geovera"
-POLICY_NUMBER = "GC50018717"
+POLICY_NUMBER = "GC60015733"
 FILE_PATH = "C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/test_data/testfile.pdf"
 
 # (policy_number, change_type_value, label, first_name, last_name, email)

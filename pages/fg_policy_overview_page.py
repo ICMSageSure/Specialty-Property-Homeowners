@@ -46,6 +46,13 @@ class FGPolicyOverviewPage:
     _LNK_ALERTS_INBOX    = "#ctl00_ctl00_ContentPlaceHolder1_lnkAlertInbox"
     _LNK_SEND_CORR       = "#ctl00_ctl00_ContentPlaceHolder1_lnkAlertSendCorrespondence"
 
+    # -- Pending changes banner --
+    # This container is present (and visible) whenever a prior SCR is still processing.
+    _PENDING_CHANGES_CONTAINER = (
+        "#ctl00_ctl00_ContentPlaceHolder1_PolicyContentPlaceHolder2_"
+        "ucChangeRequestBox_divChangeContainer"
+    )
+
     # -- Payment overview panel --
     _PAY_DUE_DATE        = "#ctl00_ctl00_ContentPlaceHolder1_PolicyContentPlaceHolder2_lblPaymentDueDate"
     _LNK_ENROLL_AUTOPAY  = "#ctl00_ctl00_ContentPlaceHolder1_PolicyContentPlaceHolder2_lnkEnrollAutoPay"
@@ -60,6 +67,9 @@ class FGPolicyOverviewPage:
 
     def wait_for_page(self) -> None:
         self.page.wait_for_selector(self._POLICY_NUMBER, timeout=30000)
+
+    def has_pending_changes(self) -> bool:
+        return self.page.locator(self._PENDING_CHANGES_CONTAINER).is_visible()
 
     def get_policy_number(self) -> str:
         return self.page.locator(self._POLICY_NUMBER).inner_text().strip()
