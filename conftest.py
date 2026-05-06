@@ -47,10 +47,11 @@ def snap(run_dir, request):
     return take
 
 
-@pytest.hookimpl(hookwrapper=True)
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
     report = outcome.get_result()
+    setattr(item, f"rep_{call.when}", report)
 
     if report.when != "call":
         return
@@ -64,6 +65,17 @@ def pytest_runtest_makereport(item, call):
             extra.append(extras.image(img_b64, mime_type="image/png", name=path.stem))
 
     report.extras = extra
+
+
+@pytest.fixture(autouse=True)
+def screenshot_on_failure(page, request, snap):
+    yield
+    rep = getattr(request.node, "rep_call", None)
+    if rep and rep.failed:
+        try:
+            snap(page, "FAILED")
+        except Exception:
+            pass
 
 @pytest.fixture(scope="session")
 def setUp(page):

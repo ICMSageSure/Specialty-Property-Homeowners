@@ -10,7 +10,7 @@ _PASSWORDS = {"ATRNRS": "password", "ANNIE-0134": "Password1"}
 PASSWORD = _PASSWORDS[USERNAME]
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "nrs", "nrs_agent_bind_results.xlsx")
 
-EFFECTIVE_DATES = ["05/04/2026", "05/15/2026"]
+EFFECTIVE_DATES = ["05/08/2026", "05/15/2026"]
 
 BILL_TO_SHORT = {
     "Applicant":       "Applicant",
@@ -94,9 +94,49 @@ BIND_SCENARIOS = [
     ("2", "Alternate Payor", "3", "Monthly",  True),
 ]
 
-# 5 scenarios per session (3 HO3 + 2 HO3T) × 2 sessions = 10 total quotes
-HO3_SCENARIOS  = [BIND_SCENARIOS[0], BIND_SCENARIOS[7],  BIND_SCENARIOS[14]]  # Applicant / Mortgagee / AltPayor — Full Pay no auto
-HO3T_SCENARIOS = [BIND_SCENARIOS[1], BIND_SCENARIOS[8]]                        # Applicant / Mortgagee — Full Pay auto
+# 10 HO3 + 10 HO3T scenarios × 2 logins = 40 total quotes
+HO3_SCENARIOS = [
+    # Applicant — Full Pay no auto, 3 Pay no auto, 4 Pay no auto, Monthly auto
+    BIND_SCENARIOS[0], BIND_SCENARIOS[2], BIND_SCENARIOS[4], BIND_SCENARIOS[6],
+    # Mortgagee — Full Pay no auto, Full Pay auto, 3 Pay auto, 4 Pay auto
+    BIND_SCENARIOS[7], BIND_SCENARIOS[8], BIND_SCENARIOS[10], BIND_SCENARIOS[12],
+    # AltPayor — 3 Pay no auto, Monthly auto
+    BIND_SCENARIOS[16], BIND_SCENARIOS[20],
+]
+
+HO3T_SCENARIOS = [
+    # Applicant — Full Pay auto, 3 Pay auto, 4 Pay auto
+    BIND_SCENARIOS[1], BIND_SCENARIOS[3], BIND_SCENARIOS[5],
+    # Mortgagee — 3 Pay no auto, 4 Pay no auto, Monthly auto
+    BIND_SCENARIOS[9], BIND_SCENARIOS[11], BIND_SCENARIOS[13],
+    # AltPayor — Full Pay no auto, Full Pay auto, 4 Pay no auto, 4 Pay auto
+    BIND_SCENARIOS[14], BIND_SCENARIOS[15], BIND_SCENARIOS[18], BIND_SCENARIOS[19],
+]
+
+
+def _remove_address(address: str):
+    import time
+    src = os.path.abspath(__file__)
+    lock_path = src + ".lock"
+    for _ in range(20):
+        try:
+            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.close(fd)
+            break
+        except FileExistsError:
+            time.sleep(0.5)
+    try:
+        with open(src, "r", encoding="utf-8") as f:
+            content = f.read()
+        line = f'    "{address}",\n'
+        if line in content:
+            with open(src, "w", encoding="utf-8") as f:
+                f.write(content.replace(line, ""))
+    finally:
+        try:
+            os.unlink(lock_path)
+        except Exception:
+            pass
 
 
 def _append_to_xlsx(row: list):
@@ -134,7 +174,6 @@ def _append_to_xlsx(row: list):
 
 
 FL_ADDRESSES = [
-    "8734 Crestgate Cir, Orlando, FL 32819",
     "8832 Savona Ct, Naples, FL 34119",
     "1461 75th Cir NE, Saint Petersburg, FL 33702",
     "8050 Princeton Dr, Naples, FL 34104",
@@ -163,7 +202,6 @@ FL_ADDRESSES = [
     "5935 Old Berkley Rd, Auburndale, FL 33823",
     "11180 113th Ave, Seminole, FL 33778",
     "1339 Gallop Drive, Loxahatchee, FL 33470",
-    "23305 June Bug Trl, Brooksville, FL 34602",
     "12614 Fenhurst WAY, NAPLES, FL 34120",
     "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
     "18037 Mambo Drive, Boca Raton, FL 33496",
@@ -189,15 +227,15 @@ def _login_and_open_quote(page: Page):
     # Agent lands directly on the address page — producer fields may or may not be present
     wholesaler, producer_code, sub_code = "", "", ""
     try:
-        wholesaler    = page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").input_value(timeout=3000)
+        wholesaler    = page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").input_value(timeout=1000)
     except Exception:
         pass
     try:
-        producer_code = page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").input_value(timeout=3000)
+        producer_code = page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").input_value(timeout=1000)
     except Exception:
         pass
     try:
-        sub_code      = page1.locator("#ctl00_WelcomeUserControl_txtSubProducerNumber").input_value(timeout=3000)
+        sub_code      = page1.locator("#ctl00_WelcomeUserControl_txtSubProducerNumber").input_value(timeout=1000)
     except Exception:
         pass
     print(f'Wholesaler: {wholesaler} | Producer: {producer_code} | Sub: {sub_code}')
@@ -395,6 +433,7 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
 def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
                                    pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     address = random.choice(FL_ADDRESSES)
+    print(f'Address: {address}')
     coverage_a = "800,000"
     insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
 
@@ -403,6 +442,11 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
 
     _enter_address(page1, address)
     snap(page1, "04_address")
+
+    ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+    if ineligible_msgs.count() > 0:
+        _remove_address(address)
+        pytest.skip(f"Address '{address}' ineligible on address screen – removed from list")
 
     # Select only Auros HO-3; uncheck the other products if visible
     if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
@@ -423,6 +467,7 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
 
     ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
     if ineligible_msgs.count() > 0:
+        _remove_address(address)
         pytest.skip(f"Address '{address}' ineligible for Auros HO-3 – {ineligible_msgs.first.inner_text().strip()}")
     try:
         page1.wait_for_selector("#ddlConstructionType", timeout=10000)
@@ -485,6 +530,7 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
 def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
                                     pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     address = random.choice(FL_ADDRESSES)
+    print(f'Address: {address}')
     coverage_a = "800,000"
     insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
     try:
@@ -498,6 +544,11 @@ def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_l
         # Set Occupancy Type to Tenant Only; Auros HO-3 produces HO-3T output under Tenant Only
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
         page1.wait_for_timeout(1500)
+
+        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+        if ineligible_msgs.count() > 0:
+            _remove_address(address)
+            pytest.skip(f"Address '{address}' ineligible on address screen – removed from list")
         if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
             page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
         if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():

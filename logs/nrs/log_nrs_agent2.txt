@@ -6,53 +6,73 @@ metadata: {'Python': '3.13.2', 'Platform': 'Windows-10-10.0.19042-SP0', 'Package
 rootdir: C:\Users\icortesmarquez\Desktop\Playwright\HO_PW
 configfile: pytest.ini
 plugins: anyio-4.12.0, base-url-2.1.0, html-4.1.1, metadata-3.1.1, playwright-0.7.0, repeat-0.9.4, xdist-3.8.0
-collecting ... collected 5 items
+collecting ... collected 20 items
 
-tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-0-Full Pay-False] PASSED [ 20%]
-tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-1-Mortgagee-0-Full Pay-False] PASSED [ 40%]
-tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-2-Alternate Payor-0-Full Pay-False] PASSED [ 60%]
-tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-0-Full Pay-True] FAILED [ 80%]
-tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-1-Mortgagee-0-Full Pay-True] PASSED [100%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-0-Full Pay-False] FAILED [  5%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-1-3 Pay-False] PASSED [ 10%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-2-4 Pay-False] SKIPPED [ 15%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-3-Monthly-True] PASSED [ 20%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-1-Mortgagee-0-Full Pay-False] PASSED [ 25%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-1-Mortgagee-0-Full Pay-True] PASSED [ 30%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-1-Mortgagee-1-3 Pay-True] SKIPPED [ 35%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-1-Mortgagee-2-4 Pay-True] SKIPPED [ 40%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-2-Alternate Payor-1-3 Pay-False] PASSED [ 45%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-2-Alternate Payor-3-Monthly-True] PASSED [ 50%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-0-Full Pay-True] PASSED [ 55%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-1-3 Pay-True] PASSED [ 60%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-2-4 Pay-True] SKIPPED [ 65%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-1-Mortgagee-1-3 Pay-False] SKIPPED [ 70%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-1-Mortgagee-2-4 Pay-False] SKIPPED [ 75%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-1-Mortgagee-3-Monthly-True] SKIPPED [ 80%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-2-Alternate Payor-0-Full Pay-False] SKIPPED [ 85%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-2-Alternate Payor-0-Full Pay-True] SKIPPED [ 90%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-2-Alternate Payor-2-4 Pay-False] SKIPPED [ 95%]
+tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-2-Alternate Payor-2-4 Pay-True] PASSED [100%]
 
 ================================== FAILURES ===================================
-____ test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-0-Full Pay-True] _____
+____ test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-0-Full Pay-False] _____
 
 page = <Page url='https://tst.mygeosource.com/Dashboard/MyAccount/Home#'>
-snap = <function snap.<locals>.take at 0x000001CCE52528E0>, bill_to_val = '0'
+snap = <function snap.<locals>.take at 0x0000020656CAB1A0>, bill_to_val = '0'
 bill_to_label = 'Applicant', pay_plan_val = '0', pay_plan_label = 'Full Pay'
-autopay = True
+autopay = False
 
-    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3T_SCENARIOS)
-    def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
-                                        pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
+    @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3_SCENARIOS)
+    def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
+                                       pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
         address = random.choice(FL_ADDRESSES)
         coverage_a = "800,000"
         insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
-        try:
-            page1, wholesaler, producer_code, sub_code = _login_and_open_quote(page)
-            snap(page1, "03_welcome")
     
-            _enter_address(page1, address)
-            page1.wait_for_timeout(2000)
-            snap(page1, "04_address")
+        page1, wholesaler, producer_code, sub_code = _login_and_open_quote(page)
+        snap(page1, "03_welcome")
     
-            # Set Occupancy Type to Tenant Only; Auros HO-3 produces HO-3T output under Tenant Only
->           page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
+        _enter_address(page1, address)
+        snap(page1, "04_address")
+    
+        # Select only Auros HO-3; uncheck the other products if visible
+        if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
+            page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
+        if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+            page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+        if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+            page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+>       page1.locator("#txtRequestedHomeownersCoverageALimit").click()
 
-tests\quotes\auros_quote\test_bind_nrs_auros_agent.py:499: 
+tests\quotes\auros_quote\test_bind_nrs_auros_agent.py:429: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\sync_api\_generated.py:17463: in select_option
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\sync_api\_generated.py:15507: in click
     self._sync(
-..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_locator.py:572: in select_option
-    return await self._frame.select_option(
-..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_frame.py:678: in select_option
-    return await self._channel.send("selectOption", params)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_locator.py:160: in click
+    return await self._frame.click(self._selector, strict=True, **params)
+..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_frame.py:488: in click
+    await self._channel.send("click", locals_to_params(locals()))
 ..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_connection.py:61: in send
     return await self._connection.wrap_api_call(
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-self = <playwright._impl._connection.Connection object at 0x000001CCE38EB230>
-cb = <function Channel.send.<locals>.<lambda> at 0x000001CCE529AF20>
+self = <playwright._impl._connection.Connection object at 0x00000206566E70E0>
+cb = <function Channel.send.<locals>.<lambda> at 0x0000020656E354E0>
 is_internal = False
 
     async def wrap_api_call(
@@ -68,14 +88,14 @@ is_internal = False
             return await cb()
         except Exception as error:
 >           raise rewrite_error(error, f"{parsed_st['apiName']}: {error}") from None
-E           playwright._impl._errors.TimeoutError: Locator.select_option: Timeout 30000ms exceeded.
+E           playwright._impl._errors.TimeoutError: Locator.click: Timeout 30000ms exceeded.
 E           Call log:
-E             - waiting for locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType")
+E             - waiting for locator("#txtRequestedHomeownersCoverageALimit")
 
 ..\..\..\AppData\Local\Programs\Python\Python313\Lib\site-packages\playwright\_impl\_connection.py:528: TimeoutError
 ---------------------------- Captured stdout call -----------------------------
 Wholesaler:  | Producer: HLDAWNF1 | Sub: 
 - Generated html report: file:///C:/Users/icortesmarquez/Desktop/Playwright/HO_PW/scripts/../results/nrs/report_nrs_agent2.html -
 =========================== short test summary info ===========================
-FAILED tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3t[chromium-0-Applicant-0-Full Pay-True]
-=================== 1 failed, 4 passed in 555.33s (0:09:15) ===================
+FAILED tests/quotes/auros_quote/test_bind_nrs_auros_agent.py::test_bind_nrs_auros_agent_ho3[chromium-0-Applicant-0-Full Pay-False]
+============ 1 failed, 9 passed, 10 skipped in 1962.20s (0:32:42) =============
