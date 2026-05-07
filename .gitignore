@@ -4,3 +4,16 @@
 /screenshots
 /scripts
 /tests/quotes/auros_quote/test_bind_auros_ho3t_debug.py
+/CLAUDE.md
+
+# Python bytecode — never commit these
+__pycache__/
+*.pyc
+*.pyc.*
+*.pyo
+
+# Pytest cache
+.pytest_cache/
+
+# Test execution logs
+/logs/
