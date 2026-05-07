@@ -68,8 +68,14 @@ def pytest_runtest_makereport(item, call):
     report.extras = extra
 
 
+@pytest.fixture
+def failure_pages():
+    """Register popup/extra pages here so they get captured on failure."""
+    return []
+
+
 @pytest.fixture(autouse=True)
-def screenshot_on_failure(page, request, snap):
+def screenshot_on_failure(page, request, snap, run_dir, failure_pages):
     yield
     rep = getattr(request.node, "rep_call", None)
     if rep and rep.failed:
@@ -77,6 +83,25 @@ def screenshot_on_failure(page, request, snap):
             snap(page, "FAILED")
         except Exception:
             pass
+        for i, extra_page in enumerate(failure_pages, start=1):
+            try:
+                snap(extra_page, f"FAILED_popup_{i}")
+            except Exception:
+                pass
+            try:
+                url = extra_page.url
+                title = extra_page.title()
+                body_text = extra_page.locator("body").inner_text(timeout=5000)
+                safe_name = request.node.name.replace("/", "_").replace("\\", "_")
+                log_path = run_dir / safe_name / "failure_log.txt"
+                log_path.parent.mkdir(exist_ok=True)
+                log_path.write_text(
+                    f"URL: {url}\nTitle: {title}\n\n{body_text}",
+                    encoding="utf-8",
+                )
+                print(f"\n=== FAILURE PAGE TEXT ({url}) ===\n{body_text[:2000]}\n===")
+            except Exception:
+                pass
 
 
 @pytest.fixture

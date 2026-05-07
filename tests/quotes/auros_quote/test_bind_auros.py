@@ -93,6 +93,21 @@ BIND_SCENARIOS = [
 ]
 
 
+SPECIFIC_BIND_SCENARIOS = [
+    # test_case, address, eff_date, bill_to_val, bill_to_label, pay_plan_val, pay_plan_label, autopay
+    ("3PayInvoiced",   "1214 Fury St, Davenport, FL 33837",                       "06/14/2026", "0", "Applicant",       "1", "3 Pay",    False),
+    ("3PayAuto",       "1840 Salem Ct, Dunedin, FL 34698",                        "07/02/2026", "2", "Alternate Payor", "1", "3 Pay",    True),
+    ("MonthlyPay",     "2150 Massachusetts Ave, Lanark Village, FL 32323",        "07/02/2026", "2", "Alternate Payor", "3", "Monthly",  True),
+    ("PDKORCC",        "9916 Lone Tree Ln, Orlando, FL 32836",                    "05/22/2026", "0", "Applicant",       "0", "Full Pay", False),
+    ("Renew",          "6123 Blue Runner Ct, Lakewood Ranch, FL 34202",           "06/29/2026", "0", "Applicant",       "0", "Full Pay", False),
+    ("Refund",         "7 Folcroft Ln, Palm Coast, FL 32137",                     "05/19/2026", "2", "Alternate Payor", "1", "3 Pay",    True),
+    ("Rebill_NSF_Fee", "522 Country Meadows Way, Bradenton, FL 34212",            "06/28/2026", "1", "Mortgagee",       "0", "Full Pay", False),
+    ("ShortPay_EPay",  "1910 NE 17th Ter, Fort Lauderdale, FL 33305",             "07/06/2026", "0", "Applicant",       "0", "Full Pay", True),
+    ("ShortPay_Inv",   "4524 5th Ave, St. Augustine, FL 32095",                   "06/19/2026", "1", "Mortgagee",       "0", "Full Pay", False),
+    ("ToleranceUnder", "19433 Whispering Brook Dr, Tampa, FL 33647",              "06/25/2026", "0", "Applicant",       "0", "Full Pay", False),
+]
+
+
 def _append_to_xlsx(row: list):
     import time
     path = os.path.abspath(RESULTS_FILE)
@@ -111,7 +126,7 @@ def _append_to_xlsx(row: list):
         else:
             wb = Workbook()
             ws = wb.active
-            ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit",
+            ws.append(["User Name", "Address", "Test Scenario", "Test Case", "Product Type", "Coverage A Limit",
                         "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium",
                         "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)",
                         "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)",
@@ -249,7 +264,7 @@ def _fill_applicant(page1: Page, insured_name: str):
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").fill(insured_name)
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").fill("")
+    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").fill("TESTER")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").press_sequentially("01")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBDay").press_sequentially("01")
@@ -336,7 +351,7 @@ def _fill_alternate_payor(page1: Page):
     page1.locator(f"#{pfx}_txtBillingZip4_1").fill(str(random.randint(1000, 9999)))
 
 
-def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pay_plan_label: str, autopay: bool):
+def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pay_plan_label: str, autopay: bool, eff_date: str = None):
     try:
         page1.locator(f'input[type="radio"][value="{QuoteNumber}"]').first.check(timeout=5000)
     except Exception:
@@ -348,7 +363,8 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
         page1.get_by_role("button", name="Continue", exact=True).click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1", timeout=30000)
-    eff_date = random.choice(EFFECTIVE_DATES)
+    if eff_date is None:
+        eff_date = random.choice(EFFECTIVE_DATES)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option(bill_to_val)
     # Wait for postback triggered by Bill To selection
@@ -472,7 +488,7 @@ def test_bind_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
     snap(page1, "14_binder_detail")
 
     scenario_label = f"Auros HO-3 | {bill_to_label} | {insured_name}"
-    _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
+    _append_to_xlsx([USERNAME, address, scenario_label, "", ProductName, coverage_a,
                      QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
                      insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
 
@@ -578,7 +594,7 @@ def test_bind_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
         snap(page1, "14_binder_detail")
 
         scenario_label = f"Auros HO-3T | {bill_to_label} | {insured_name}"
-        _append_to_xlsx([USERNAME, address, scenario_label, ProductName, coverage_a,
+        _append_to_xlsx([USERNAME, address, scenario_label, "", ProductName, coverage_a,
                          QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
                          insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
     finally:
@@ -587,3 +603,98 @@ def test_bind_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
                 page1.close()
             except Exception:
                 pass
+
+
+# ---------------------------------------------------------------------------
+# Auros HO-3 — Specific Named Scenarios
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "test_case,address,eff_date,bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay",
+    SPECIFIC_BIND_SCENARIOS,
+    ids=[s[0] for s in SPECIFIC_BIND_SCENARIOS],
+)
+def test_bind_auros_ho3_specific(page: Page, snap, failure_pages, test_case: str, address: str, eff_date: str,
+                                  bill_to_val: str, bill_to_label: str,
+                                  pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
+    coverage_a = "800,000"
+    pay_plan_short = {"Full Pay": "Full", "3 Pay": "3Pay", "Monthly": "Monthly"}[pay_plan_label]
+    pay_type_short = "EPay" if autopay else "Inv"
+    insured_name = f"{test_case} {pay_plan_short} {pay_type_short}"
+
+    page1 = _login_and_open_quote(page)
+    failure_pages.append(page1)
+    snap(page1, "03_welcome")
+
+    _enter_address(page1, address)
+    snap(page1, "04_address")
+
+    if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
+        page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
+    if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+        page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+    if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+        page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+    page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+    page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+    snap(page1, "05_coverages")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+    page1.get_by_role("button", name="Next -->").click()
+    page1.wait_for_timeout(2000)
+
+    ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+    if ineligible_msgs.count() > 0:
+        pytest.skip(f"Address '{address}' ineligible for Auros HO-3 – {ineligible_msgs.first.inner_text().strip()}")
+    try:
+        page1.wait_for_selector("#ddlConstructionType", timeout=10000)
+    except Exception:
+        page_text = page1.locator("body").inner_text()
+        pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+
+    _fill_property_screens(page1)
+    snap(page1, "09_wind_mitigation")
+
+    _fill_applicant(page1, insured_name)
+    snap(page1, "10_applicant")
+
+    q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+    for i in range(q_count):
+        loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+        if loc.count() > 0:
+            loc.select_option("False")
+    wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+    if wind_mit_q.count() > 0:
+        wind_mit_q.select_option("True")
+    page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+    for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+        loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+        if loc.count() > 0:
+            loc.check()
+    snap(page1, "11_questions")
+    page1.get_by_role("button", name="Submit Quote Request").click()
+    page1.wait_for_timeout(2000)
+
+    ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+    if ineligible_msgs.count() > 0:
+        pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
+    try:
+        page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+    except Exception:
+        page_text = page1.locator("body").inner_text()
+        pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
+    snap(page1, "12_quote_results")
+
+    QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+
+    BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+        page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay, eff_date=eff_date
+    )
+    snap(page1, "14_binder_detail")
+
+    scenario_label = f"Auros HO-3 | {bill_to_label} | {insured_name}"
+    _append_to_xlsx([USERNAME, address, scenario_label, test_case, ProductName, coverage_a,
+                     QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])

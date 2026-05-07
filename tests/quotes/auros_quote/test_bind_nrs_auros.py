@@ -5,7 +5,7 @@ import pytest
 from playwright.sync_api import Page
 from openpyxl import load_workbook, Workbook
 
-USERNAME = os.environ.get("AUROS_USERNAME", "icortesmarquez@geovera.com")
+USERNAME = os.environ.get("AUROS_USERNAME", "tsicortesmarquez@geovera.com")
 WHOLESALER = "HULL001"
 PRODUCERS = [("HLKAREN", "01"), ("ANNIE", "0134")]
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "nrs", "nrs_bind_results.xlsx")
