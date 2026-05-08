@@ -3,7 +3,7 @@ import os
 import random
 import pytest
 from playwright.sync_api import Page
-from openpyxl import load_workbook, Workbook
+from helpers.result_logger import make_xlsx_appender
 
 USERNAME = "icortesmarquez@geovera"
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros", "auros_quote_results.xlsx")
@@ -95,17 +95,8 @@ _FIELD_DATA_NO_NAME = {
 }
 
 
-def _append_to_xlsx(row: list):
-    path = os.path.abspath(RESULTS_FILE)
-    if os.path.exists(path):
-        wb = load_workbook(path)
-        ws = wb.active
-    else:
-        wb = Workbook()
-        ws = wb.active
-        ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)"])
-    ws.append(row)
-    wb.save(path)
+_HEADERS = ["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)"]
+_append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +112,10 @@ def _run_to_endorsements_page(page: Page, address: str, coverage_a: str = "800,0
     page.get_by_role("textbox", name="Password").fill(os.environ["INTERNAL_PASSWORD"])
     page.get_by_role("button", name="Log In", exact=True).click()
     page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
-    page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
+    try:
+        page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click(timeout=1500)
+    except Exception:
+        page.locator("#optionHomeowners").get_by_text("Residential Homeowner Products").click()
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()
 
@@ -295,7 +289,7 @@ def _finish_quote(page1, address: str, coverage_a: str, scenario: str = "", fiel
 
     field_values = [field_data.get(k, "") if field_data else "" for k in _FIELD_COLS]
     page1.wait_for_timeout(3000)
-    _append_to_xlsx([USERNAME, address, scenario, ProductName, coverage_a, QuoteNumber, QuoteExpiration, Dwelling,
+    _append_result([USERNAME, address, scenario, ProductName, coverage_a, QuoteNumber, QuoteExpiration, Dwelling,
                      TotalAnnualPremium, FullPay, ThreePay, FourPay, MonthlyPay] + field_values)
 
 

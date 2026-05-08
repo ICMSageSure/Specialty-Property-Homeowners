@@ -3,8 +3,10 @@
 /references
 /screenshots
 /scripts
-/tests/quotes/auros_quote/test_bind_auros_ho3t_debug.py
 /CLAUDE.md
+/.vscode
+/.claude
+
 
 # Python bytecode — never commit these
 __pycache__/

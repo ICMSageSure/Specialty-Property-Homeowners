@@ -1,4 +1,3 @@
-import base64
 import os
 import pytest
 import shutil
@@ -62,8 +61,7 @@ def pytest_runtest_makereport(item, call):
 
     for path in _test_screenshots.get(item.nodeid, []):
         if path.exists():
-            img_b64 = base64.b64encode(path.read_bytes()).decode()
-            extra.append(extras.image(img_b64, mime_type="image/png", name=path.stem))
+            extra.append(extras.image(path.as_uri(), mime_type="image/png", name=path.stem))
 
     report.extras = extra
 

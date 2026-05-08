@@ -3,10 +3,15 @@ import os
 import random
 import pytest
 from playwright.sync_api import Page
-from openpyxl import load_workbook, Workbook
+from helpers.result_logger import make_xlsx_appender
+from pages.login_page import LoginPage
 
 USERNAME = os.environ.get("AUROS_USERNAME", "icortesmarquez@geovera.com")
-RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros", "auros_test_results.xlsx")
+PORTAL_USERNAME = "icortesmarquez@geovera"
+TEMP_POLICY_NUM = "GC60015733"
+RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros", "auros_bind_results.xlsx")
+BAD_ADDRESSES_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros", "bad_addresses.txt")
+QUOTE_URL = "https://tst.mygeosource.com/RHQ/QuotingHO/Quote.aspx"
 
 EFFECTIVE_DATES = ["05/04/2026", "05/15/2026"]
 
@@ -108,37 +113,42 @@ SPECIFIC_BIND_SCENARIOS = [
 ]
 
 
-def _append_to_xlsx(row: list):
+class _AddressIneligible(Exception):
+    pass
+
+
+def _log_bad_address(address: str, reason: str):
     import time
-    path = os.path.abspath(RESULTS_FILE)
-    lock_path = path + ".lock"
-    for _ in range(20):
+    path = os.path.abspath(BAD_ADDRESSES_FILE)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} | {address} | {reason}\n")
+    print(f"[BAD ADDRESS] {address} — {reason}")
+
+
+def _try_addresses(addresses, flow, fail_prefix: str = "", catch_all: bool = False):
+    """Iterate addresses, run flow(address) until one succeeds.
+    On caught exception, log via _log_bad_address and continue.
+    flow is responsible for closing its own page on failure (re-raise after cleanup)."""
+    catchable = (_AddressIneligible, Exception) if catch_all else (_AddressIneligible,)
+    for address in addresses:
         try:
-            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            os.close(fd)
-            break
-        except FileExistsError:
-            time.sleep(0.5)
-    try:
-        if os.path.exists(path):
-            wb = load_workbook(path)
-            ws = wb.active
-        else:
-            wb = Workbook()
-            ws = wb.active
-            ws.append(["User Name", "Address", "Test Scenario", "Test Case", "Product Type", "Coverage A Limit",
-                        "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium",
-                        "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)",
-                        "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)",
-                        "Zip (max 5)", "Zip+4 (max 4)", "Binder Number", "Bill To", "Payment Plan",
-                        "Effective Date", "Amount Due Now"])
-        ws.append(row)
-        wb.save(path)
-    finally:
-        try:
-            os.unlink(lock_path)
-        except Exception:
-            pass
+            flow(address)
+            return
+        except catchable as exc:
+            _log_bad_address(address, str(exc))
+    pytest.fail(f"{fail_prefix}All {len(addresses)} addresses exhausted — no eligible address found")
+
+
+_HEADERS = [
+    "User Name", "Address", "Test Scenario", "Test Case", "Product Type", "Coverage A Limit",
+    "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium",
+    "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)",
+    "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)",
+    "Zip (max 5)", "Zip+4 (max 4)", "Binder Number", "Bill To", "Payment Plan",
+    "Effective Date", "Amount Due Now",
+]
+_append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
 
 
 FL_ADDRESSES = [
@@ -182,6 +192,40 @@ FL_ADDRESSES = [
 ]
 
 
+def _lookup_policy(page: Page, policy_num: str) -> Page:
+    """Log in, search for a policy by number, open it in a popup, and click New Quote."""
+    LoginPage(page).login(PORTAL_USERNAME, os.environ["INTERNAL_PASSWORD"])
+    page.get_by_role("button", name="Policies").click()
+    page.get_by_text("Select Product").click()
+    page.get_by_role("tree").get_by_text("Homeowners").click()
+    page.wait_for_timeout(2000)
+    page.get_by_text("Select State...").first.click()
+    page.wait_for_timeout(500)
+    page.get_by_role("option", name="FL").click()
+    page.get_by_text("Policy #").first.click()
+    page.wait_for_timeout(500)
+    page.get_by_role("option", name="Policy #").click()
+    page.get_by_role("textbox", name="Search").fill(policy_num)
+    page.get_by_role("button", name="View").click()
+    with page.expect_popup(timeout=60000) as popup_info:
+        page.get_by_role("gridcell", name=policy_num).click()
+    page1 = popup_info.value
+    page1.locator("#ctl00_ctl00_MyGeoSourceMenun1").hover()
+    page1.wait_for_timeout(1000)
+    page1.get_by_role("link", name="New Quote").click()
+    page1.wait_for_selector("#ctl00_WelcomeUserControl_ddlWholesaler", timeout=30000)
+    page1.locator("#ctl00_WelcomeUserControl_ddlWholesaler").select_option("APPUND")
+    page1.locator("#ctl00_WelcomeUserControl_txtProducerNumber").fill("APPAGT")
+    page1.locator("#ctl00_WelcomeUserControl_btnUpdateQuotingAs").click()
+    page1.wait_for_selector("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId", timeout=30000)
+    page1.locator("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId").click()
+    page1.wait_for_timeout(3000)
+    page1.goto(QUOTE_URL)
+    page1.wait_for_load_state("domcontentloaded")
+    page1.wait_for_timeout(2000)
+    return page1
+
+
 def _login_and_open_quote(page: Page):
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
@@ -190,7 +234,10 @@ def _login_and_open_quote(page: Page):
     page.get_by_role("textbox", name="Password").fill(os.environ["INTERNAL_PASSWORD"])
     page.get_by_role("button", name="Log In", exact=True).click()
     page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
-    page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
+    try:
+        page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click(timeout=1500)
+    except Exception:
+        page.locator("#optionHomeowners").get_by_text("Residential Homeowner Products").click()
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()
     page1 = page1_info.value
@@ -201,6 +248,9 @@ def _login_and_open_quote(page: Page):
     page1.wait_for_selector("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId", timeout=30000)
     page1.locator("#ctl00_WelcomeUserControl_ucWelcomeUserLookup_dgUserList_ctl02_btnId").click()
     page1.wait_for_timeout(3000)
+    page1.goto(QUOTE_URL)
+    page1.wait_for_load_state("domcontentloaded")
+    page1.wait_for_timeout(2000)
     return page1
 
 
@@ -232,7 +282,7 @@ def _fill_property_screens(page1: Page):
     try:
         rc_row = page1.locator("#ctl00_ContentPlaceHolder1_rowNavigationReplacementCost td").first
         if rc_row.count() > 0:
-            raw = rc_row.text_content(timeout=5000) or ""
+            raw = rc_row.text_content(timeout=1500) or ""
             m = re.search(r"\$([\d,]+)", raw)
             if m:
                 replacement_cost = float(m.group(1).replace(",", ""))
@@ -287,7 +337,7 @@ def _collect_quote_info(page1: Page):
     def _get_pay(idx: str) -> str:
         loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_{idx}_lblQuote1PaymentOption")
         try:
-            text = loc.text_content(timeout=5000).strip()
+            text = loc.text_content(timeout=1500).strip()
         except Exception:
             return ""
         m = re.search(r"\$\d{1,3}(?:,\d{3})*(?:\.\d{2})", text)
@@ -312,7 +362,7 @@ def _fill_mortgagee_block(page1: Page, n: int):
     name_arrow = f"#{pfx}_rcbMortgagee{n}Name1_Arrow"
     name_items = f"#{pfx}_rcbMortgagee{n}Name1_DropDown .rcbItem"
     page1.locator(name_arrow).click()
-    page1.wait_for_selector(name_items, timeout=5000)
+    page1.wait_for_selector(name_items, timeout=1500)
     items = page1.locator(name_items)
     items.nth(random.randint(0, items.count() - 1)).click()
     # Wait for postback to populate Street dropdown
@@ -327,7 +377,7 @@ def _fill_mortgagee_block(page1: Page, n: int):
     street_items = f"#{pfx}_rcbMortgagee{n}Street_DropDown .rcbItem"
     page1.locator(street_arrow).click()
     try:
-        page1.wait_for_selector(street_items, timeout=5000)
+        page1.wait_for_selector(street_items, timeout=1500)
         page1.locator(street_items).first.click()
         page1.wait_for_timeout(1000)
     except Exception:
@@ -353,7 +403,7 @@ def _fill_alternate_payor(page1: Page):
 
 def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pay_plan_label: str, autopay: bool, eff_date: str = None):
     try:
-        page1.locator(f'input[type="radio"][value="{QuoteNumber}"]').first.check(timeout=5000)
+        page1.locator(f'input[type="radio"][value="{QuoteNumber}"]').first.check(timeout=1500)
     except Exception:
         pass
     page1.get_by_role("button", name="Continue to Bind Coverage").click()
@@ -410,87 +460,94 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
 @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", BIND_SCENARIOS)
 def test_bind_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
                         pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
-    address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
     insured_name = f"Auros {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
 
-    page1 = _login_and_open_quote(page)
-    snap(page1, "03_welcome")
+    def _flow(address: str):
+        page1 = None
+        try:
+            page1 = _login_and_open_quote(page)
+            snap(page1, "03_welcome")
 
-    _enter_address(page1, address)
-    snap(page1, "04_address")
+            _enter_address(page1, address)
+            snap(page1, "04_address")
 
-    # Select only Auros HO-3; uncheck the other products if visible
-    if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
-        page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
-    if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
-        page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
-    if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
-        page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
-    page1.locator("#txtRequestedHomeownersCoverageALimit").click()
-    page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
-    snap(page1, "05_coverages")
-    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
-        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
-    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
-        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
-    page1.get_by_role("button", name="Next -->").click()
-    page1.wait_for_timeout(2000)
+            if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
+                page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
+            if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+                page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+            if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+                page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+            snap(page1, "05_coverages")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+            page1.get_by_role("button", name="Next -->").click()
+            page1.wait_for_timeout(2000)
 
-    ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
-    if ineligible_msgs.count() > 0:
-        pytest.skip(f"Address '{address}' ineligible for Auros HO-3 – {ineligible_msgs.first.inner_text().strip()}")
-    try:
-        page1.wait_for_selector("#ddlConstructionType", timeout=10000)
-    except Exception:
-        page_text = page1.locator("body").inner_text()
-        pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                raise _AddressIneligible(f"'{address}' ineligible on coverages screen")
+            try:
+                page1.wait_for_selector("#ddlConstructionType", timeout=10000)
+            except Exception:
+                raise _AddressIneligible(f"'{address}' did not advance to property page")
 
-    _fill_property_screens(page1)
-    snap(page1, "09_wind_mitigation")
+            _fill_property_screens(page1)
+            snap(page1, "09_wind_mitigation")
 
-    _fill_applicant(page1, insured_name)
-    snap(page1, "10_applicant")
+            _fill_applicant(page1, insured_name)
+            snap(page1, "10_applicant")
 
-    # General information — answer all visible questions; ctl21 (wind mitigation) is conditional
-    q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
-    for i in range(q_count):
-        loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
-        if loc.count() > 0:
-            loc.select_option("False")
-    wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
-    if wind_mit_q.count() > 0:
-        wind_mit_q.select_option("True")
-    page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
-    for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
-        loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
-        if loc.count() > 0:
-            loc.check()
-    snap(page1, "11_questions")
-    page1.get_by_role("button", name="Submit Quote Request").click()
-    page1.wait_for_timeout(2000)
+            q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+            for i in range(q_count):
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+                if loc.count() > 0:
+                    loc.select_option("False")
+            wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+            if wind_mit_q.count() > 0:
+                wind_mit_q.select_option("True")
+            page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+            for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+                if loc.count() > 0:
+                    loc.check()
+            snap(page1, "11_questions")
+            page1.get_by_role("button", name="Submit Quote Request").click()
+            page1.wait_for_timeout(2000)
 
-    ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
-    if ineligible_msgs.count() > 0:
-        pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
-    try:
-        page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
-    except Exception:
-        page_text = page1.locator("body").inner_text()
-        pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
-    snap(page1, "12_quote_results")
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                raise _AddressIneligible(f"'{address}' ineligible after quote submit")
+            try:
+                page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+            except Exception:
+                raise _AddressIneligible(f"'{address}' quote results did not load")
+            snap(page1, "12_quote_results")
 
-    QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+            QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
 
-    BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
-        page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
-    )
-    snap(page1, "14_binder_detail")
+            BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+                page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
+            )
+            snap(page1, "14_binder_detail")
 
-    scenario_label = f"Auros HO-3 | {bill_to_label} | {insured_name}"
-    _append_to_xlsx([USERNAME, address, scenario_label, "", ProductName, coverage_a,
-                     QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+            scenario_label = f"Auros HO-3 | {bill_to_label} | {insured_name}"
+            _append_result([USERNAME, address, scenario_label, "", ProductName, coverage_a,
+                             QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                             insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+        except _AddressIneligible:
+            if page1 is not None:
+                try:
+                    page1.close()
+                except Exception:
+                    pass
+            raise
+
+    _try_addresses(random.sample(FL_ADDRESSES, len(FL_ADDRESSES)), _flow)
 
 
 # ---------------------------------------------------------------------------
@@ -500,109 +557,109 @@ def test_bind_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
 @pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", BIND_SCENARIOS)
 def test_bind_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
                          pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
-    address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
     insured_name = f"Auros {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
-    page1 = None
-    try:
-        page1 = _login_and_open_quote(page)
-        snap(page1, "03_welcome")
 
-        _enter_address(page1, address)
-        page1.wait_for_timeout(2000)
-        snap(page1, "04_address")
-
-        # Set Occupancy Type to Tenant Only; Auros HO-3 produces HO-3T output under Tenant Only
-        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
-        page1.wait_for_timeout(1500)
-        if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
-            page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
-        if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
-            page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
-        page1.locator("#txtRequestedHomeownersCoverageALimit").click()
-        page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
-        snap(page1, "05_coverages")
-        if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
-            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
-        if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
-            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
-        page1.get_by_role("button", name="Next -->").click()
-        page1.wait_for_timeout(2000)
-
-        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
-        if ineligible_msgs.count() > 0:
-            pytest.skip(f"Address '{address}' ineligible for Auros HO-3T – {ineligible_msgs.first.inner_text().strip()}")
+    def _flow(address: str):
+        page1 = None
         try:
-            page1.wait_for_selector("#ddlConstructionType", timeout=30000)
-        except Exception:
-            page_text = page1.locator("body").inner_text()
-            pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+            page1 = _login_and_open_quote(page)
+            snap(page1, "03_welcome")
 
-        try:
-            _fill_property_screens(page1)
-        except Exception as e:
-            pytest.skip(f"Property screens failed for '{address}' – {e}")
-        snap(page1, "09_wind_mitigation")
+            _enter_address(page1, address)
+            page1.wait_for_timeout(2000)
+            snap(page1, "04_address")
 
-        try:
-            _fill_applicant(page1, insured_name)
-        except Exception as e:
-            pytest.skip(f"Applicant screen failed for '{address}' – {e}")
-        snap(page1, "10_applicant")
+            page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlOccupancyType").select_option("Tenant Only")
+            page1.wait_for_timeout(1500)
+            if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+                page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+            if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+                page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+            snap(page1, "05_coverages")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+            page1.get_by_role("button", name="Next -->").click()
+            page1.wait_for_timeout(2000)
 
-        # General information — answer all visible questions; ctl17 (tenant) and ctl21 (roof materials) are conditional
-        q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
-        for i in range(q_count):
-            loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
-            if loc.count() > 0:
-                loc.select_option("False")
-        tenant_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl17_ddlQuestions")
-        if tenant_q.count() > 0:
-            tenant_q.select_option("True")
-        roof_mat_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
-        if roof_mat_q.count() > 0:
-            roof_mat_q.select_option("False")
-        page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
-        tenant_chk = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkTenantLiability")
-        if tenant_chk.count() > 0:
-            tenant_chk.check()
-        for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
-            loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
-            if loc.count() > 0:
-                loc.check()
-        snap(page1, "11_questions")
-        page1.get_by_role("button", name="Submit Quote Request").click()
-        page1.wait_for_timeout(2000)
-
-        ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
-        if ineligible_msgs.count() > 0:
-            pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
-        try:
-            page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
-        except Exception:
-            page_text = page1.locator("body").inner_text()
-            pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
-        snap(page1, "12_quote_results")
-
-        QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
-        if not any(x in ProductName for x in ("3T", "HO-3T", "Tenant")):
-            pytest.skip(f"Quote returned '{ProductName}' instead of HO-3T for '{address}' – skipping bind")
-
-        BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
-            page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
-        )
-        snap(page1, "14_binder_detail")
-
-        scenario_label = f"Auros HO-3T | {bill_to_label} | {insured_name}"
-        _append_to_xlsx([USERNAME, address, scenario_label, "", ProductName, coverage_a,
-                         QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
-    finally:
-        if page1 is not None:
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                raise _AddressIneligible(f"'{address}' ineligible on coverages screen")
             try:
-                page1.close()
+                page1.wait_for_selector("#ddlConstructionType", timeout=30000)
             except Exception:
-                pass
+                raise _AddressIneligible(f"'{address}' did not advance to property page")
+
+            try:
+                _fill_property_screens(page1)
+            except Exception as e:
+                raise _AddressIneligible(f"'{address}' property screens failed — {e}")
+            snap(page1, "09_wind_mitigation")
+
+            try:
+                _fill_applicant(page1, insured_name)
+            except Exception as e:
+                raise _AddressIneligible(f"'{address}' applicant screen failed — {e}")
+            snap(page1, "10_applicant")
+
+            q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+            for i in range(q_count):
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+                if loc.count() > 0:
+                    loc.select_option("False")
+            tenant_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl17_ddlQuestions")
+            if tenant_q.count() > 0:
+                tenant_q.select_option("True")
+            roof_mat_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+            if roof_mat_q.count() > 0:
+                roof_mat_q.select_option("False")
+            page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+            tenant_chk = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkTenantLiability")
+            if tenant_chk.count() > 0:
+                tenant_chk.check()
+            for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+                if loc.count() > 0:
+                    loc.check()
+            snap(page1, "11_questions")
+            page1.get_by_role("button", name="Submit Quote Request").click()
+            page1.wait_for_timeout(2000)
+
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                raise _AddressIneligible(f"'{address}' ineligible after quote submit")
+            try:
+                page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+            except Exception:
+                raise _AddressIneligible(f"'{address}' quote results did not load")
+            snap(page1, "12_quote_results")
+
+            QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+            if not any(x in ProductName for x in ("3T", "HO-3T", "Tenant")):
+                raise _AddressIneligible(f"'{address}' returned '{ProductName}' instead of HO-3T")
+
+            BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+                page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
+            )
+            snap(page1, "14_binder_detail")
+
+            scenario_label = f"Auros HO-3T | {bill_to_label} | {insured_name}"
+            _append_result([USERNAME, address, scenario_label, "", ProductName, coverage_a,
+                             QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                             insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+        except _AddressIneligible:
+            if page1 is not None:
+                try:
+                    page1.close()
+                except Exception:
+                    pass
+            raise
+
+    _try_addresses(random.sample(FL_ADDRESSES, len(FL_ADDRESSES)), _flow)
 
 
 # ---------------------------------------------------------------------------
@@ -614,7 +671,7 @@ def test_bind_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
     SPECIFIC_BIND_SCENARIOS,
     ids=[s[0] for s in SPECIFIC_BIND_SCENARIOS],
 )
-def test_bind_auros_ho3_specific(page: Page, snap, failure_pages, test_case: str, address: str, eff_date: str,
+def test_bind_auros_ho3_specific(page: Page, snap, test_case: str, address: str, eff_date: str,
                                   bill_to_val: str, bill_to_label: str,
                                   pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     coverage_a = "800,000"
@@ -622,79 +679,93 @@ def test_bind_auros_ho3_specific(page: Page, snap, failure_pages, test_case: str
     pay_type_short = "EPay" if autopay else "Inv"
     insured_name = f"{test_case} {pay_plan_short} {pay_type_short}"
 
-    page1 = _login_and_open_quote(page)
-    failure_pages.append(page1)
-    snap(page1, "03_welcome")
+    fallback_pool = [a for a in FL_ADDRESSES if a != address]
+    random.shuffle(fallback_pool)
+    addresses_to_try = [address] + fallback_pool
 
-    _enter_address(page1, address)
-    snap(page1, "04_address")
+    def _flow(attempt_addr: str):
+        page1 = None
+        try:
+            # page1 = _login_and_open_quote(page)
+            page1 = _lookup_policy(page, TEMP_POLICY_NUM)
+            snap(page1, "03_welcome")
 
-    if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
-        page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
-    if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
-        page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
-    if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
-        page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
-    page1.locator("#txtRequestedHomeownersCoverageALimit").click()
-    page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
-    snap(page1, "05_coverages")
-    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
-        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
-    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
-        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
-    page1.get_by_role("button", name="Next -->").click()
-    page1.wait_for_timeout(2000)
+            _enter_address(page1, attempt_addr)
+            snap(page1, "04_address")
 
-    ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
-    if ineligible_msgs.count() > 0:
-        pytest.skip(f"Address '{address}' ineligible for Auros HO-3 – {ineligible_msgs.first.inner_text().strip()}")
-    try:
-        page1.wait_for_selector("#ddlConstructionType", timeout=10000)
-    except Exception:
-        page_text = page1.locator("body").inner_text()
-        pytest.skip(f"Address '{address}' did not advance to property page – {page_text[:200].strip()}")
+            if page1.get_by_role("checkbox", name="Auros HO-3T").is_visible():
+                page1.get_by_role("checkbox", name="Auros HO-3T").uncheck()
+            if page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").is_visible():
+                page1.get_by_role("checkbox", name="GeoVera Specialty HO-3").uncheck()
+            if page1.get_by_role("checkbox", name="HO Wind Only").is_visible():
+                page1.get_by_role("checkbox", name="HO Wind Only").uncheck()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").click()
+            page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
+            snap(page1, "05_coverages")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtYearBuilt").fill("2025")
+            if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").is_visible():
+                page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLivingArea").fill("2025")
+            page1.get_by_role("button", name="Next -->").click()
+            page1.wait_for_timeout(2000)
 
-    _fill_property_screens(page1)
-    snap(page1, "09_wind_mitigation")
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                raise _AddressIneligible(f"[{test_case}] '{attempt_addr}' ineligible on coverages screen")
+            try:
+                page1.wait_for_selector("#ddlConstructionType", timeout=10000)
+            except Exception:
+                raise _AddressIneligible(f"[{test_case}] '{attempt_addr}' did not advance to property page")
 
-    _fill_applicant(page1, insured_name)
-    snap(page1, "10_applicant")
+            _fill_property_screens(page1)
+            snap(page1, "09_wind_mitigation")
 
-    q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
-    for i in range(q_count):
-        loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
-        if loc.count() > 0:
-            loc.select_option("False")
-    wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
-    if wind_mit_q.count() > 0:
-        wind_mit_q.select_option("True")
-    page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
-    for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
-        loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
-        if loc.count() > 0:
-            loc.check()
-    snap(page1, "11_questions")
-    page1.get_by_role("button", name="Submit Quote Request").click()
-    page1.wait_for_timeout(2000)
+            _fill_applicant(page1, insured_name)
+            snap(page1, "10_applicant")
 
-    ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
-    if ineligible_msgs.count() > 0:
-        pytest.skip(f"Address '{address}' ineligible after submit – {ineligible_msgs.first.inner_text().strip()}")
-    try:
-        page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
-    except Exception:
-        page_text = page1.locator("body").inner_text()
-        pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
-    snap(page1, "12_quote_results")
+            q_count = page1.locator("[id*='ucGenInfoQuestDDL_rptrQuestions'][id$='_ddlQuestions']").count()
+            for i in range(q_count):
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl{i:02d}_ddlQuestions")
+                if loc.count() > 0:
+                    loc.select_option("False")
+            wind_mit_q = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ucGenInfoQuestDDL_rptrQuestions_ctl21_ddlQuestions")
+            if wind_mit_q.count() > 0:
+                wind_mit_q.select_option("True")
+            page1.get_by_role("cell", name="Applicant acknowledges that flood coverage is excluded for the homeowners, wind-only, and vacant policy.", exact=True).locator("span").first.click()
+            for chk in ["chkRoofPaymentSchedule", "chkFloodExclusion", "chkRoofExclusion", "chkAcknowledgedWaterDamageLimitation"]:
+                loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_{chk}")
+                if loc.count() > 0:
+                    loc.check()
+            snap(page1, "11_questions")
+            page1.get_by_role("button", name="Submit Quote Request").click()
+            page1.wait_for_timeout(2000)
 
-    QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+            ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
+            if ineligible_msgs.count() > 0:
+                raise _AddressIneligible(f"[{test_case}] '{attempt_addr}' ineligible after quote submit")
+            try:
+                page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header", timeout=30000)
+            except Exception:
+                raise _AddressIneligible(f"[{test_case}] '{attempt_addr}' quote results did not load")
+            snap(page1, "12_quote_results")
 
-    BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
-        page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay, eff_date=eff_date
-    )
-    snap(page1, "14_binder_detail")
+            QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
 
-    scenario_label = f"Auros HO-3 | {bill_to_label} | {insured_name}"
-    _append_to_xlsx([USERNAME, address, scenario_label, test_case, ProductName, coverage_a,
-                     QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+            BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
+                page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay, eff_date=eff_date
+            )
+            snap(page1, "14_binder_detail")
+
+            scenario_label = f"Auros HO-3 | {bill_to_label} | {insured_name}"
+            _append_result([USERNAME, attempt_addr, scenario_label, test_case, ProductName, coverage_a,
+                             QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
+                             insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+        except (_AddressIneligible, Exception):
+            if page1 is not None:
+                try:
+                    page1.close()
+                except Exception:
+                    pass
+            raise
+
+    _try_addresses(addresses_to_try, _flow, fail_prefix=f"[{test_case}] ", catch_all=True)

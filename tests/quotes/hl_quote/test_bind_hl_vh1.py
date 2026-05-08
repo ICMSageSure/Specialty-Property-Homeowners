@@ -4,36 +4,11 @@ import random
 import pytest
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
-from openpyxl import load_workbook, Workbook
+from helpers.result_logger import make_xlsx_appender
 
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "hl", "hl_test_results.xlsx")
-
-def _append_to_xlsx(row: list):
-    import time
-    path = os.path.abspath(RESULTS_FILE)
-    lock_path = path + ".lock"
-    for _ in range(20):
-        try:
-            fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-            os.close(fd)
-            break
-        except FileExistsError:
-            time.sleep(0.5)
-    try:
-        if os.path.exists(path):
-            wb = load_workbook(path)
-            ws = wb.active
-        else:
-            wb = Workbook()
-            ws = wb.active
-            ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
-        ws.append(row)
-        wb.save(path)
-    finally:
-        try:
-            os.unlink(lock_path)
-        except Exception:
-            pass
+_HEADERS = ["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"]
+_append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
 
 
 FL_ADDRESSES = [
@@ -320,4 +295,4 @@ def test_quote_hl_vh1_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
     print(f'Due Date: {due_date_text}')
     page1.wait_for_timeout(5000)
 
-    _append_to_xlsx([username, address, f"HL VH1 ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", binder_number])
+    _append_result([username, address, f"HL VH1 ({pay_plan_label})", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", binder_number])

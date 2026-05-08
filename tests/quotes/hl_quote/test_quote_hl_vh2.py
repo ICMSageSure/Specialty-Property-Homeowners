@@ -4,21 +4,11 @@ import random
 import pytest
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
-from openpyxl import load_workbook, Workbook
+from helpers.result_logger import make_xlsx_appender
 
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "hl", "hl_test_results.xlsx")
-
-def _append_to_xlsx(row: list):
-    path = os.path.abspath(RESULTS_FILE)
-    if os.path.exists(path):
-        wb = load_workbook(path)
-        ws = wb.active
-    else:
-        wb = Workbook()
-        ws = wb.active
-        ws.append(["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"])
-    ws.append(row)
-    wb.save(path)
+_HEADERS = ["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"]
+_append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
 
 
 FL_ADDRESSES = [
@@ -249,4 +239,4 @@ def test_quote_hl_vh2_quote_only(page: Page, snap) -> None:
     three_pay = three_pay_match.group() if three_pay_match else ""
     print(f"3 Pay First Installment: {three_pay}")
 
-    _append_to_xlsx([username, address, "HL VH2", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", ""])
+    _append_result([username, address, "HL VH2", ProductName, coverage_a, QuoteNumber, "", "", premium, FullPay, three_pay, "", "", "", "", "", "", "", "", ""])
