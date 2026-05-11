@@ -5,56 +5,11 @@ import pytest
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
 from helpers.result_logger import make_xlsx_appender
+from helpers.test_data import HO_STANDARD_ADDRESSES as FL_ADDRESSES
 
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "fg", "fg_test_results.xlsx")
 _HEADERS = ["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"]
 _append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
-
-
-FL_ADDRESSES = [
-    "8734 Crestgate Cir, Orlando, FL 32819",
-    "19240 Pepper Grass Dr, Tampa, FL 33647",
-    "8832 Savona Ct, Naples, FL 34119",
-    "1461 75th Cir NE, Saint Petersburg, FL 33702",
-    "8050 Princeton Dr, Naples, FL 34104",
-    "12274 Accipiter Dr, Orlando, FL 32837",
-    "15110 Shearcrest Dr, Lithia, FL 33547",
-    "7733 Belvoir Dr, Orlando, FL 32835",
-    "9426 Meadow Crest Ln, Clermont, FL 34711",
-    "612 Citrus Wood Ln, Valrico, FL 33594",
-    "66 Woodbury Dr, Palm Coast, FL 32164",
-    "1401 Maine Ave, Lynn Haven, FL 32444",
-    "9607 Bahia Rd, Ocala, FL 34472",
-    "2150 NW 74th Ave, Fort Lauderdale, FL 33313",
-    "4364 Tarragon Ave, Middleburg, FL 32068",
-    "3198 Michaels Ct, Green Cove Springs, FL 32043",
-    "3250 Dowitcher Ln, Orange Park, FL 32065",
-    "613 S West St, Green Cove Springs, FL 32043",
-    "8329 Lakemont Dr, Jacksonville, FL 32216",
-    "13501 Princess Kelly Dr, Jacksonville, FL 32225",
-    "6229 Cranberry Ln E, Jacksonville, FL 32244",
-    "14688 Indigo Lakes Cir, Naples, FL 34119",
-    "24262 Captain Kidd Blvd, Punta Gorda, FL 33955",
-    "3780 Ashland Ave, Pensacola, FL 32534",
-    "5518 Davis Street, Fort Pierce, FL 34982",
-    "37 N Waterview Dr, Palm Coast, FL 32137",
-    "3700 NW 20th Street, Coconut Creek, FL 33066",
-    "85 GLENALBY Place, Ponte Vedra, FL 32081",
-    "111 Midway Park Dr, Saint Augustine, FL 32084",
-    "6104 Spencer Parrish Rd, Parrish, FL 34219",
-    "5935 Old Berkley Rd, Auburndale, FL 33823",
-    "11180 113th Ave, Seminole, FL 33778",
-    "1339 Gallop Drive, Loxahatchee, FL 33470",
-    "23305 June Bug Trl, Brooksville, FL 34602",
-    "325 Sheffield Cir W, Palm Harbor, FL 34683",
-    "12614 Fenhurst WAY, NAPLES, FL 34120",
-    "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
-    "18037 Mambo Drive, Boca Raton, FL 33496",
-    "3651 Canopy CIR, NAPLES, FL 34120",
-    "2650 SW Windship Way, Stuart, FL 34997",
-    "5021 Wesley Dr, Tampa, FL 33647",
-    "6032 Elm Rd, Sebring, FL 33875",
-]
 
 @pytest.mark.parametrize("pay_plan_val,pay_plan_label", [
     ("0", "Full Pay"),
@@ -75,7 +30,10 @@ def test_quote_fg_ho3_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
     page.get_by_role("button", name="Log In", exact=True).click()
     snap(page, "01_login")
     page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
-    page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
+    try:
+        page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click(timeout=1500)
+    except Exception:
+        page.locator("#optionHomeowners").get_by_text("Residential Homeowner Products").click()
     snap(page, "02_product_select")
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()

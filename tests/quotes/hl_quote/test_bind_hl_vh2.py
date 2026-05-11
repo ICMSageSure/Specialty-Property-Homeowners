@@ -1,74 +1,15 @@
-import re
+﻿import re
 import os
 import random
 import pytest
 from playwright.sync_api import Page, expect
 from datetime import datetime, timedelta
 from helpers.result_logger import make_xlsx_appender
+from helpers.test_data import HL_VACANT_ADDRESSES as FL_ADDRESSES
 
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "hl", "hl_test_results.xlsx")
 _HEADERS = ["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)", "Binder Number"]
 _append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
-
-
-FL_ADDRESSES = [
-    "72 Saint Kitts Cir, Winter Haven, FL 33884",
-    "320 Sea Breeze Dr, Panama City Beach, FL 32413",
-    "15443 Perdido Dr, Orlando, FL 32828",
-    "19240 Pepper Grass Dr, Tampa, FL 33647",
-    "450 SW 125th Ave, Ocala, FL 34481",
-    "3032 Bridgefield Ct, The Villages, FL 32162",
-    "132 White Blossom Trl, Port Saint Joe, FL 32456",
-    "1285 Azalea Dr, Jacksonville, FL 32205",
-    "912 Anthony St E, Lehigh Acres, FL 33974",
-    "1949 Par Dr, Naples, FL 34120",
-    "1409 Courtside Dr, Panama City Beach, FL 32413",
-    "1408 Courtside Dr, Panama City Beach, FL 32413",
-    "1410 Courtside Dr, Panama City Beach, FL 32413",
-    "125 Lightning Bug Ln, Sopchoppy, FL 32358",
-    "5711 Peach Dr, Milton, FL 32571",
-    "2506 23rd St W, Lehigh Acres, FL 33971",
-    "960 NE Juniper Pl, Jensen Beach, FL 34957",
-    "3408 69th St W, Lehigh Acres, FL 33971",
-    "3419 26th St SW, Lehigh Acres, FL 33976",
-    "3402 72nd St W, Lehigh Acres, FL 33971",
-    "3506 67th St W, Lehigh Acres, FL 33971",
-    "2608 45th St SW, Lehigh Acres, FL 33976",
-    "15738 Switch Cane St, Clermont, FL 34711",
-    "24 Riverwalk Cir, Freeport, FL 32439",
-    "72 Riverwalk Cir, Freeport, FL 32439",
-    "2596 Surfside Blvd, Cape Coral, FL 33914",
-    "6837 Misty View Dr, Jacksonville, FL 32210",
-    "1336 NW 13th Pl, Cape Coral, FL 33993",
-    "10827 Venice Cir, Tampa, FL 33635",
-    "6132 Highwood Park Ln, Naples, FL 34110",
-    "1898 SE Coronado Ln, Stuart, FL 34996",
-    "3319 Clubview Dr, North Fort Myers, FL 33917",
-    "3618 Elm St, Ellenton, FL 34222",
-    "2832 Vintage View Loop, Lakeland, FL 33812",
-    "4734 Amhurst Cir, Destin, FL 32541",
-    "4346 Marine Pkwy, New Port Richey, FL 34652",
-    "24262 Captain Kidd Blvd, Punta Gorda, FL 33955",
-    "3780 Ashland Ave, Pensacola, FL 32534",
-    "5518 Davis Street, Fort Pierce, FL 34982",
-    "37 N Waterview Dr, Palm Coast, FL 32137",
-    "3700 NW 20th Street, Coconut Creek, FL 33066",
-    "85 GLENALBY Place, Ponte Vedra, FL 32081",
-    "111 Midway Park Dr, Saint Augustine, FL 32084",
-    "6104 Spencer Parrish Rd, Parrish, FL 34219",
-    "5935 Old Berkley Rd, Auburndale, FL 33823",
-    "11180 113th Ave, Seminole, FL 33778",
-    "1339 Gallop Drive, Loxahatchee, FL 33470",
-    "23305 June Bug Trl, Brooksville, FL 34602",
-    "325 Sheffield Cir W, Palm Harbor, FL 34683",
-    "12614 Fenhurst WAY, NAPLES, FL 34120",
-    "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
-    "18037 Mambo Drive, Boca Raton, FL 33496",
-    "3651 Canopy CIR, NAPLES, FL 34120",
-    "2650 SW Windship Way, Stuart, FL 34997",
-    "5021 Wesley Dr, Tampa, FL 33647",
-    "6032 Elm Rd, Sebring, FL 33875",
-]
 
 @pytest.mark.parametrize("pay_plan_val,pay_plan_label", [
     ("0", "Full Pay"),
@@ -89,7 +30,10 @@ def test_quote_hl_vh2_quote_to_bind(page: Page, snap, pay_plan_val: str, pay_pla
     page.get_by_role("button", name="Log In", exact=True).click()
     snap(page, "01_login")
     page.get_by_role("paragraph").filter(has_text="Start New Quote").get_by_role("link").click()
-    page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click()
+    try:
+        page.locator("#optionHomeowners").get_by_text("GeoVera Specialty Insurance").click(timeout=1500)
+    except Exception:
+        page.locator("#optionHomeowners").get_by_text("Residential Homeowner Products").click()
     snap(page, "02_product_select")
     with page.expect_popup() as page1_info:
         page.get_by_role("button", name="OK").click()

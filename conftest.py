@@ -6,8 +6,23 @@ from datetime import datetime
 from pages.login_page import LoginPage
 
 SCREENSHOTS_ROOT = Path(__file__).parent / "screenshots"
+RESULTS_ROOT = Path(__file__).parent / "results"
 MAX_RUNS = 3
+MAX_LOG_LINES = 500
 _INTERNAL_USERS = frozenset({"icortesmarquez@geovera", "tsicortesmarquez@geovera"})
+
+
+def pytest_sessionstart(session):
+    """Trim unbounded log files to MAX_LOG_LINES so they don't grow forever."""
+    if not RESULTS_ROOT.exists():
+        return
+    for log_path in RESULTS_ROOT.rglob("bad_addresses.txt"):
+        try:
+            lines = log_path.read_text(encoding="utf-8").splitlines(keepends=True)
+            if len(lines) > MAX_LOG_LINES:
+                log_path.write_text("".join(lines[-MAX_LOG_LINES:]), encoding="utf-8")
+        except Exception:
+            pass
 
 _test_screenshots: dict[str, list[Path]] = {}
 

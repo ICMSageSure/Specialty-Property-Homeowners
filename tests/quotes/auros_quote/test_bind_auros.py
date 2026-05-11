@@ -263,8 +263,16 @@ def _enter_address(page1: Page, address: str):
         page1.locator(".rcbList .rcbItem").first.click()
         page1.wait_for_timeout(1000)
     except Exception:
-        inp.press("Enter")
-        page1.wait_for_timeout(2000)
+        # Nudge stuck autocomplete: backspace + retype last char re-fires the suggestion fetch
+        inp.press("Backspace")
+        inp.press_sequentially(address[-1], delay=50)
+        try:
+            page1.wait_for_selector(".rcbList .rcbItem", timeout=8000)
+            page1.locator(".rcbList .rcbItem").first.click()
+            page1.wait_for_timeout(1000)
+        except Exception:
+            inp.press("Enter")
+            page1.wait_for_timeout(2000)
     page1.get_by_role("button", name="Next -->").click()
 
 
