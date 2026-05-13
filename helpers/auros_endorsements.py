@@ -91,14 +91,28 @@ def fill_pool_endorsement(page1, limit: int = None):
 
 
 def fill_water_limitation(page1, limit: int = None):
-    """Water Damage Limitation. Product checkbox US-WL-20 is pre-checked; just set the limit.
-    limit options: 10000, 20000, 25000, 50000, 75000.
+    """Water Damage Limitation (ARIE-US-WL-20). Checks the checkbox if it is unchecked and enabled
+    (mandatory/grayed-out checkboxes are left alone). Selects a limit from the HomeFlex dropdown.
+    limit options: 10000, 20000, 25000.
     If limit is None, randomly selects from available options.
     Returns the selected limit value."""
+    chk = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_rptrWaterEndorsements_ctl00_ucEndorsement2a_rptrProductEndorsements_ctl00_chkInclude")
+    if chk.count() > 0 and chk.is_visible() and chk.is_enabled() and not chk.is_checked():
+        chk.check()
     if limit is None:
-        limit = random.choice([10000, 20000, 25000, 50000, 75000])
+        limit = random.choice([10000, 20000, 25000])
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_rptrWaterEndorsements_ctl00_ucEndorsement2a_ddlLimit").select_option(str(limit))
     return limit
+
+
+def click_water_update_if_visible(page1):
+    """Clicks the water endorsement Update button if it is visible.
+    Must be called after all water section interactions — checking any water checkbox
+    from an unchecked state causes this button to appear."""
+    btn = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_btnUpdateWaterLimitEndorsements")
+    if btn.is_visible():
+        btn.click()
+        page1.wait_for_load_state("networkidle")
 
 
 def fill_water_excl_named_peril(page1):

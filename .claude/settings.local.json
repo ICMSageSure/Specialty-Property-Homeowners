@@ -17,7 +17,8 @@
       "Bash(python -c ' *)",
       "Bash(python -m pytest tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3 --collect-only -q)",
       "Bash(python -m pytest \"tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[chromium-0-Applicant-0-Full Pay-False]\" --headed -v -s)",
-      "Bash(python -m pytest --co -q \"tests/quotes/auros_quote/test_bind_nrs_auros_agent.py\")"
+      "Bash(python -m pytest --co -q \"tests/quotes/auros_quote/test_bind_nrs_auros_agent.py\")",
+      "Bash(python -m pytest \"tests/quotes/auros_quote/test_bind_auros.py::test_bind_auros_ho3[1-Mortgagee-0-Full Pay-False]\" -v -s)"
     ]
   }
 }

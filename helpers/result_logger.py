@@ -1,6 +1,7 @@
 import os
 import time
 from openpyxl import load_workbook, Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
 
 
 def append_to_xlsx(xlsx_path: str, row: list, headers: list | None = None) -> None:
@@ -31,6 +32,15 @@ def append_to_xlsx(xlsx_path: str, row: list, headers: list | None = None) -> No
             ws = wb.active
             if headers:
                 ws.append(headers)
+                header_fill = PatternFill(fill_type="solid", fgColor="1E5631")
+                header_font = Font(bold=True, color="FFFFFF")
+                for col_idx, header in enumerate(headers, start=1):
+                    cell = ws.cell(row=1, column=col_idx)
+                    cell.fill = header_fill
+                    cell.font = header_font
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+                    ws.column_dimensions[cell.column_letter].width = max(len(str(header)), 10) + 2
+                ws.freeze_panes = "A2"
         ws.append(row)
         wb.save(path)
     finally:

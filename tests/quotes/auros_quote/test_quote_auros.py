@@ -2,11 +2,20 @@
 import os
 import random
 import pytest
+from datetime import date, timedelta
 from playwright.sync_api import Page
 from helpers.result_logger import make_xlsx_appender
 from helpers.test_data import AUROS_STANDARD_ADDRESSES as FL_ADDRESSES
 
 USERNAME = "icortesmarquez@geovera"
+
+_today = date.today()
+EFFECTIVE_DATES = [
+    _today.strftime("%m/%d/%Y"),
+    (_today + timedelta(days=15)).strftime("%m/%d/%Y"),
+    (_today + timedelta(days=30)).strftime("%m/%d/%Y"),
+]
+
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros", "auros_quote_results.xlsx")
 _HEADERS = ["User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)", "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)", "Zip (max 5)", "Zip+4 (max 4)"]
 _append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
@@ -201,7 +210,7 @@ def test_quote_auros(page: Page) -> None:
         page1.get_by_role("button", name="Continue", exact=True).click()
 
     page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1", timeout=30000)
-    eff_date = "04/30/2026"
+    eff_date = random.choice(EFFECTIVE_DATES)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option("0")
     page1.locator("#ddlPaymentPlan1").select_option("0")

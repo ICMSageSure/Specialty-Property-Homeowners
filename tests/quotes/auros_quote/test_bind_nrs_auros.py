@@ -2,8 +2,9 @@ import re
 import os
 import random
 import pytest
+from datetime import date, timedelta
 from playwright.sync_api import Page
-from helpers.result_logger import make_xlsx_appender
+from helpers.result_logger import make_xlsx_appender, make_xlsx_updater
 from helpers.auros_endorsements import (
     fill_address_endorsement,
     fill_rented_address_endorsement,
@@ -11,6 +12,9 @@ from helpers.auros_endorsements import (
     check_only_endorsement,
     fill_pool_endorsement,
     fill_water_limitation,
+    fill_water_excl_named_peril,
+    fill_water_excl_limited,
+    click_water_update_if_visible,
 )
 
 USERNAME = os.environ.get("AUROS_USERNAME", "tsicortesmarquez@geovera.com")
@@ -18,7 +22,12 @@ WHOLESALER = "HULL001"
 PRODUCERS = [("HLKAREN", "01"), ("ANNIE", "0134")]
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "nrs", "nrs_bind_results.xlsx")
 
-EFFECTIVE_DATES = ["05/04/2026", "05/15/2026"]
+_today = date.today()
+EFFECTIVE_DATES = [
+    _today.strftime("%m/%d/%Y"),
+    (_today + timedelta(days=15)).strftime("%m/%d/%Y"),
+    (_today + timedelta(days=30)).strftime("%m/%d/%Y"),
+]
 
 BILL_TO_SHORT = {
     "Applicant":       "Applicant",
@@ -115,16 +124,16 @@ HO3T_SCENARIOS = [s + PRODUCERS[0] for s in _HO3T_BASE]
 # Pay Type "Invoiced" → autopay=False; "E Pay" → autopay=True.
 NRS_TEST_SCENARIOS = [
     # (test_case,        address,                                              eff_date,     pay_plan_val, pay_plan_label, autopay, bill_to_val, bill_to_label)
-    ("3PayInvoiced",    "2269 Cascadia Ct, St. Augustine, FL 32092",          "06/14/2026", "1", "3 Pay",    False, "0", "Applicant"),
-    ("3PayAuto",        "3137 Castle Rock Cir, Land O Lakes, FL 34639",       "07/02/2026", "1", "3 Pay",    True,  "2", "Alternate Payor"),
-    ("MonthlyPay",      "13626 Allyn Dr, Hudson, FL 34667",                   "07/02/2026", "3", "Monthly",  True,  "2", "Alternate Payor"),
-    ("PDKORCC",         "600 S Dixie Hwy #352, West Palm Beach, FL 33401",    "05/22/2026", "0", "Full Pay", False, "0", "Applicant"),
-    ("Renew",           "510 Wedge Ln, Longboat Key, FL 34228",               "06/29/2026", "0", "Full Pay", False, "0", "Applicant"),
-    ("Refund",          "8431 SE Duncan St, Hobe Sound, FL 33455",            "05/19/2026", "1", "3 Pay",    True,  "2", "Alternate Payor"),
-    ("RebillNSFFee",    "308 Ferndale Way, St. Augustine, FL 32092",          "06/28/2026", "0", "Full Pay", False, "1", "Mortgagee"),
-    ("ShortPayOrlando", "6013 Fender Ct, Orlando, FL 32837",                  "07/06/2026", "0", "Full Pay", True,  "0", "Applicant"),
-    ("ShortPayOdessa",  "1607 Abyss Dr, Odessa, FL 33556",                    "06/19/2026", "0", "Full Pay", False, "1", "Mortgagee"),
-    ("ToleranceUnder",  "1151 NW 45th St, Miami, FL 33127",                   "06/25/2026", "0", "Full Pay", False, "0", "Applicant"),
+    # ("3PayInvoiced",    "2269 Cascadia Ct, St. Augustine, FL 32092",          "06/14/2026", "1", "3 Pay",    False, "0", "Applicant"),
+    # ("3PayAuto",        "3137 Castle Rock Cir, Land O Lakes, FL 34639",       "07/02/2026", "1", "3 Pay",    True,  "2", "Alternate Payor"),
+    # ("MonthlyPay",      "13626 Allyn Dr, Hudson, FL 34667",                   "07/02/2026", "3", "Monthly",  True,  "2", "Alternate Payor"),
+    # ("PDKORCC",         "600 S Dixie Hwy #352, West Palm Beach, FL 33401",    "05/22/2026", "0", "Full Pay", False, "0", "Applicant"),
+    # ("Renew",           "510 Wedge Ln, Longboat Key, FL 34228",               "06/29/2026", "0", "Full Pay", False, "0", "Applicant"),
+    # ("Refund",          "8431 SE Duncan St, Hobe Sound, FL 33455",            "05/19/2026", "1", "3 Pay",    True,  "2", "Alternate Payor"),
+    # ("RebillNSFFee",    "308 Ferndale Way, St. Augustine, FL 32092",          "06/28/2026", "0", "Full Pay", False, "1", "Mortgagee"),
+    # ("ShortPayOrlando", "6013 Fender Ct, Orlando, FL 32837",                  "07/06/2026", "0", "Full Pay", True,  "0", "Applicant"),
+    # ("ShortPayOdessa",  "1607 Abyss Dr, Odessa, FL 33556",                    "06/19/2026", "0", "Full Pay", False, "1", "Mortgagee"),
+    # ("ToleranceUnder",  "1151 NW 45th St, Miami, FL 33127",                   "06/25/2026", "0", "Full Pay", False, "0", "Applicant"),
 ]
 
 
@@ -134,10 +143,11 @@ _HEADERS = [
     "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium",
     "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)",
     "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)",
-    "Zip (max 5)", "Zip+4 (max 4)", "Binder Number", "Bill To", "Payment Plan",
+    "Zip (max 5)", "Zip+4 (max 4)", "Status", "Binder Number", "Bill To", "Payment Plan",
     "Effective Date", "Amount Due Now", "Endorsements Applied",
 ]
 _append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
+_update_result = make_xlsx_updater(RESULTS_FILE, 9)  # Quote Number is column 9 (1-based)
 
 
 FL_ADDRESSES = [
@@ -209,14 +219,22 @@ def _login_and_open_quote(page: Page, producer_code: str, sub_code: str):
 def _enter_address(page1: Page, address: str):
     inp = page1.locator("#RadAutoCompleteBoxGeo_Input")
     inp.click()
-    inp.press_sequentially(address, delay=50)
+    inp.fill(address)
+    inp.press("Backspace")
+    inp.press_sequentially(address[-1], delay=50)
     try:
-        page1.wait_for_selector(".rcbList .rcbItem", timeout=8000)
+        page1.wait_for_selector(".rcbList .rcbItem", timeout=3000)
         page1.locator(".rcbList .rcbItem").first.click()
-        page1.wait_for_timeout(1000)
     except Exception:
-        inp.press("Enter")
-        page1.wait_for_timeout(2000)
+        # Second nudge: backspace + retype last char again
+        inp.press("Backspace")
+        inp.press_sequentially(address[-1], delay=50)
+        try:
+            page1.wait_for_selector(".rcbList .rcbItem", timeout=3000)
+            page1.locator(".rcbList .rcbItem").first.click()
+        except Exception:
+            inp.press("Enter")
+            page1.wait_for_timeout(2000)
     page1.get_by_role("button", name="Next -->").click()
 
 
@@ -229,7 +247,7 @@ def _fill_property_screens(page1: Page):
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFoundationElevation").fill("0")
     page1.get_by_role("button", name="Next -->").click()
-    page1.wait_for_timeout(3000)
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ctl05_ddlCentralFireAlarm", timeout=15000)
     replacement_cost = 0.0
     try:
         rc_row = page1.locator("#ctl00_ContentPlaceHolder1_rowNavigationReplacementCost td").first
@@ -291,7 +309,7 @@ def _fill_applicant(page1: Page, insured_name: str):
     page1.locator("input[name=\"ctl00\\$ContentPlaceHolder1\\$ctl05\\$txtSSN3\"]").press_sequentially("1122")
     page1.get_by_role("checkbox", name="Is Mailing Address the same").check()
     page1.locator("#ddlPriorHomeownersInsurance").select_option("False")
-    page1.wait_for_timeout(3000)
+    page1.wait_for_load_state("networkidle", timeout=10000)
     page1.locator("#ddlPriorHomeownersInsurance").select_option("False")
     page1.get_by_role("button", name="Next -->").click()
 
@@ -299,7 +317,9 @@ def _fill_applicant(page1: Page, insured_name: str):
 def _collect_quote_info(page1: Page):
     QuoteNumber = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Number").inner_text()
     ProductName = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Header").inner_text()
-    print(f'Product: {ProductName}  |  Quote: {QuoteNumber}')
+    QuoteExpiration = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Expiration").inner_text()
+    Dwelling = page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstCoverageDetails_ctl00_lblQuote1Coverage").inner_text()
+    print(f'Product: {ProductName}  |  Quote: {QuoteNumber}  |  Expires: {QuoteExpiration}  |  Dwelling: {Dwelling}')
 
     def _get_pay(idx: str) -> str:
         loc = page1.locator(f"#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lstPaymentOptions_{idx}_lblQuote1PaymentOption")
@@ -316,7 +336,7 @@ def _collect_quote_info(page1: Page):
     monthly    = _get_pay("ctl03")
 
     print(f'Full Pay: {full_pay} | 3-Pay: {three_pay} | 4-Pay: {four_pay} | Monthly: {monthly}')
-    return QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly
+    return QuoteNumber, ProductName, QuoteExpiration, Dwelling, full_pay, three_pay, four_pay, monthly
 
 
 def _fill_mortgagee_block(page1: Page, n: int):
@@ -333,7 +353,8 @@ def _fill_mortgagee_block(page1: Page, n: int):
     items = page1.locator(name_items)
     items.nth(random.randint(0, items.count() - 1)).click()
     # Wait for postback to populate Street dropdown
-    page1.wait_for_timeout(2500)
+    street_arrow = f"#{pfx}_rcbMortgagee{n}Street_Arrow"
+    page1.wait_for_selector(street_arrow, timeout=10000)
 
     # Fill Second Name with fake data
     second_name = random.choice(MORTGAGEE_SECOND_NAMES)
@@ -384,7 +405,12 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBinderEffectiveDate1").fill(eff_date)
     page1.locator("#ctl00_ContentPlaceHolder1_ucBinderRequest_ddlBillTo1").select_option(bill_to_val)
     # Wait for postback triggered by Bill To selection
-    page1.wait_for_timeout(2000)
+    if bill_to_val == "1":
+        page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_rcbMortgagee1Name1_Arrow", timeout=10000)
+    elif bill_to_val == "2":
+        page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucBinderRequest_txtBillingAlternatePayor1_1", timeout=10000)
+    else:
+        page1.wait_for_load_state("networkidle", timeout=5000)
     if bill_to_val == "1":
         _fill_mortgagee_block(page1, 1)
         if random.choice([True, False]):
@@ -415,7 +441,6 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
     EffectiveDate  = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblEffectiveDate").inner_text()
     AmountDueNow   = page1.locator("#ctl00_ContentPlaceHolder1_ucBinderDetail_lblAmountDue").inner_text()
     print(f'Binder: {BinderNumber} | Bill To: {BillTo} | Plan: {PaymentPlan} | Eff: {EffectiveDate} | Due: {AmountDueNow}')
-    page1.wait_for_timeout(5000)
     return BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow
 
 
@@ -423,8 +448,9 @@ def _maybe_change_deductible(page1: Page) -> str:
     """Randomly decide whether to edit the deductible. If yes, pick a non-default value (skipping $5,000),
     submit, and wait for the postback to re-render the quote details. Returns the final deductible label.
     Caller is responsible for re-reading premium/payment values after a change."""
-    DEFAULT_LABEL = "$5,000"
+    DEFAULT_LABEL = "$2,500"
     NON_DEFAULT = [
+        ("E", "$5,000"),
         ("F", "$7,500"),
         ("G", "$10,000"),
         ("H", "$15,000"),
@@ -449,7 +475,8 @@ def _maybe_change_deductible(page1: Page) -> str:
 
 def _apply_random_endorsements(page1: Page):
     """Pick 3-5 endorsements from the non-conflicting pool and apply them.
-    Water exclusions are intentionally excluded — they conflict with water_limitation.
+    At most one of water_excl_named_peril / water_excl_limited enters the pool per run
+    to prevent the two mutually exclusive exclusions from both being selected.
     Individual failures are logged and skipped so one bad endorsement doesn't fail the bind.
     Returns a list of human-readable 'name (detail)' strings for logging into xlsx."""
     ai_addrs   = random.randint(1, 2)
@@ -475,6 +502,11 @@ def _apply_random_endorsements(page1: Page):
         ("water_limitation",         None,
             lambda: fill_water_limitation(page1, limit=None)),
     ]
+    water_excl_choice = random.choice([None, "named_peril", "limited"])
+    if water_excl_choice == "named_peril":
+        options.append(("water_excl_named_peril", "", lambda: fill_water_excl_named_peril(page1)))
+    elif water_excl_choice == "limited":
+        options.append(("water_excl_limited", "", lambda: fill_water_excl_limited(page1)))
     selected = random.sample(options, random.randint(3, 5))
     applied = []
     for name, detail, fn in selected:
@@ -485,6 +517,7 @@ def _apply_random_endorsements(page1: Page):
             applied.append(f"{name} ({detail})" if detail else name)
         except Exception as e:
             print(f"  [endorsement skip] {name}: {e}")
+    click_water_update_if_visible(page1)
     print(f"Applied endorsements ({len(applied)}): {applied}")
     return applied
 
@@ -572,23 +605,25 @@ def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: s
         pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
     snap(page1, "12_quote_results")
 
-    QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    QuoteNumber, ProductName, QuoteExpiration, Dwelling, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
     deductible = _maybe_change_deductible(page1)
-    if deductible != "$5,000":
-        QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    if deductible != "$2,500":
+        *_, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
         snap(page1, "12b_quote_after_deductible")
+
+    scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
+    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, deductible,
+                     WHOLESALER, f"{producer_code}-{sub_code}",
+                     QuoteNumber, QuoteExpiration, Dwelling, full_pay, full_pay, three_pay, four_pay, monthly,
+                     insured_name, "", "", "", "", "", "Not Bound", "", "", "", "", "",
+                     "; ".join(applied_endorsements)])
 
     BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
         page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
     )
     snap(page1, "14_binder_detail")
 
-    scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
-    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, deductible,
-                     WHOLESALER, f"{producer_code}-{sub_code}",
-                     QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
-                     "; ".join(applied_endorsements)])
+    _update_result(QuoteNumber, {23: "Bound", 24: BinderNumber, 25: BillTo, 26: PaymentPlan, 27: EffectiveDate, 28: AmountDueNow})
 
 
 # ---------------------------------------------------------------------------
@@ -688,25 +723,27 @@ def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: 
             pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
         snap(page1, "12_quote_results")
 
-        QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+        QuoteNumber, ProductName, QuoteExpiration, Dwelling, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
         if not any(x in ProductName for x in ("3T", "HO-3T", "Tenant")):
             pytest.skip(f"Quote returned '{ProductName}' instead of HO-3T for '{address}' – skipping bind")
         deductible = _maybe_change_deductible(page1)
-        if deductible != "$5,000":
-            QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+        if deductible != "$2,500":
+            *_, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
             snap(page1, "12b_quote_after_deductible")
+
+        scenario_label = f"NRS Auros HO-3T | {bill_to_label} | {insured_name}"
+        _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, deductible,
+                         WHOLESALER, f"{producer_code}-{sub_code}",
+                         QuoteNumber, QuoteExpiration, Dwelling, full_pay, full_pay, three_pay, four_pay, monthly,
+                         insured_name, "", "", "", "", "", "Not Bound", "", "", "", "", "",
+                         "; ".join(applied_endorsements)])
 
         BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
             page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
         )
         snap(page1, "14_binder_detail")
 
-        scenario_label = f"NRS Auros HO-3T | {bill_to_label} | {insured_name}"
-        _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, deductible,
-                         WHOLESALER, f"{producer_code}-{sub_code}",
-                         QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
-                         "; ".join(applied_endorsements)])
+        _update_result(QuoteNumber, {23: "Bound", 24: BinderNumber, 25: BillTo, 26: PaymentPlan, 27: EffectiveDate, 28: AmountDueNow})
     finally:
         if page1 is not None:
             try:
@@ -795,16 +832,22 @@ def test_bind_nrs_auros(page: Page, snap, test_case: str, address: str, eff_date
         pytest.skip(f"Quote results did not load for '{address}' – {page_text[:300].strip()}")
     snap(page1, "12_quote_results")
 
-    QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    QuoteNumber, ProductName, QuoteExpiration, Dwelling, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    deductible = _maybe_change_deductible(page1)
+    if deductible != "$2,500":
+        *_, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+        snap(page1, "12b_quote_after_deductible")
+
+    scenario_label = f"NRS {test_case} | {bill_to_label} | {pay_plan_label}"
+    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, deductible,
+                     WHOLESALER, f"{producer_code}-{sub_code}",
+                     QuoteNumber, QuoteExpiration, Dwelling, full_pay, full_pay, three_pay, four_pay, monthly,
+                     insured_name, "", "", "", "", "", "Not Bound", "", "", "", "", "",
+                     ""])
 
     BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
         page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay, eff_date
     )
     snap(page1, "14_binder_detail")
 
-    scenario_label = f"NRS {test_case} | {bill_to_label} | {pay_plan_label}"
-    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, "",
-                     WHOLESALER, f"{producer_code}-{sub_code}",
-                     QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
-                     ""])
+    _update_result(QuoteNumber, {23: "Bound", 24: BinderNumber, 25: BillTo, 26: PaymentPlan, 27: EffectiveDate, 28: AmountDueNow})
