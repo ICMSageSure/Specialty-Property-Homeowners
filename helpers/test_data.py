@@ -19,7 +19,6 @@ HO_STANDARD_ADDRESSES = [
     "4364 Tarragon Ave, Middleburg, FL 32068",
     "3198 Michaels Ct, Green Cove Springs, FL 32043",
     "3250 Dowitcher Ln, Orange Park, FL 32065",
-    "613 S West St, Green Cove Springs, FL 32043",
     "8329 Lakemont Dr, Jacksonville, FL 32216",
     "13501 Princess Kelly Dr, Jacksonville, FL 32225",
     "6229 Cranberry Ln E, Jacksonville, FL 32244",
@@ -27,7 +26,6 @@ HO_STANDARD_ADDRESSES = [
     "24262 Captain Kidd Blvd, Punta Gorda, FL 33955",
     "3780 Ashland Ave, Pensacola, FL 32534",
     "5518 Davis Street, Fort Pierce, FL 34982",
-    "37 N Waterview Dr, Palm Coast, FL 32137",
     "3700 NW 20th Street, Coconut Creek, FL 33066",
     "85 GLENALBY Place, Ponte Vedra, FL 32081",
     "111 Midway Park Dr, Saint Augustine, FL 32084",
@@ -35,7 +33,6 @@ HO_STANDARD_ADDRESSES = [
     "5935 Old Berkley Rd, Auburndale, FL 33823",
     "11180 113th Ave, Seminole, FL 33778",
     "1339 Gallop Drive, Loxahatchee, FL 33470",
-    "23305 June Bug Trl, Brooksville, FL 34602",
     "325 Sheffield Cir W, Palm Harbor, FL 34683",
     "12614 Fenhurst WAY, NAPLES, FL 34120",
     "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
@@ -43,14 +40,11 @@ HO_STANDARD_ADDRESSES = [
     "3651 Canopy CIR, NAPLES, FL 34120",
     "2650 SW Windship Way, Stuart, FL 34997",
     "5021 Wesley Dr, Tampa, FL 33647",
-    "6032 Elm Rd, Sebring, FL 33875",
 ]
 
 
 AUROS_STANDARD_ADDRESSES = [
-
     "8734 Crestgate Cir, Orlando, FL 32819",
-    "19240 Pepper Grass Dr, Tampa, FL 33647",
     "8832 Savona Ct, Naples, FL 34119",
     "1461 75th Cir NE, Saint Petersburg, FL 33702",
     "8050 Princeton Dr, Naples, FL 34104",
@@ -64,16 +58,12 @@ AUROS_STANDARD_ADDRESSES = [
     "2150 NW 74th Ave, Fort Lauderdale, FL 33313",
     "4364 Tarragon Ave, Middleburg, FL 32068",
     "3198 Michaels Ct, Green Cove Springs, FL 32043",
-    "3250 Dowitcher Ln, Orange Park, FL 32065",
-    "613 S West St, Green Cove Springs, FL 32043",
     "8329 Lakemont Dr, Jacksonville, FL 32216",
     "13501 Princess Kelly Dr, Jacksonville, FL 32225",
     "6229 Cranberry Ln E, Jacksonville, FL 32244",
     "14688 Indigo Lakes Cir, Naples, FL 34119",
-    "24262 Captain Kidd Blvd, Punta Gorda, FL 33955",
     "3780 Ashland Ave, Pensacola, FL 32534",
     "5518 Davis Street, Fort Pierce, FL 34982",
-    "37 N Waterview Dr, Palm Coast, FL 32137",
     "3700 NW 20th Street, Coconut Creek, FL 33066",
     "85 GLENALBY Place, Ponte Vedra, FL 32081",
     "111 Midway Park Dr, Saint Augustine, FL 32084",
@@ -81,15 +71,12 @@ AUROS_STANDARD_ADDRESSES = [
     "5935 Old Berkley Rd, Auburndale, FL 33823",
     "11180 113th Ave, Seminole, FL 33778",
     "1339 Gallop Drive, Loxahatchee, FL 33470",
-    "23305 June Bug Trl, Brooksville, FL 34602",
-    "325 Sheffield Cir W, Palm Harbor, FL 34683",
     "12614 Fenhurst WAY, NAPLES, FL 34120",
     "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
     "18037 Mambo Drive, Boca Raton, FL 33496",
     "3651 Canopy CIR, NAPLES, FL 34120",
     "2650 SW Windship Way, Stuart, FL 34997",
     "5021 Wesley Dr, Tampa, FL 33647",
-    "6032 Elm Rd, Sebring, FL 33875",
 ]
 
 
@@ -134,7 +121,6 @@ HL_VACANT_ADDRESSES = [
     "24262 Captain Kidd Blvd, Punta Gorda, FL 33955",
     "3780 Ashland Ave, Pensacola, FL 32534",
     "5518 Davis Street, Fort Pierce, FL 34982",
-    "37 N Waterview Dr, Palm Coast, FL 32137",
     "3700 NW 20th Street, Coconut Creek, FL 33066",
     "85 GLENALBY Place, Ponte Vedra, FL 32081",
     "111 Midway Park Dr, Saint Augustine, FL 32084",
@@ -142,7 +128,6 @@ HL_VACANT_ADDRESSES = [
     "5935 Old Berkley Rd, Auburndale, FL 33823",
     "11180 113th Ave, Seminole, FL 33778",
     "1339 Gallop Drive, Loxahatchee, FL 33470",
-    "23305 June Bug Trl, Brooksville, FL 34602",
     "325 Sheffield Cir W, Palm Harbor, FL 34683",
     "12614 Fenhurst WAY, NAPLES, FL 34120",
     "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
@@ -150,7 +135,6 @@ HL_VACANT_ADDRESSES = [
     "3651 Canopy CIR, NAPLES, FL 34120",
     "2650 SW Windship Way, Stuart, FL 34997",
     "5021 Wesley Dr, Tampa, FL 33647",
-    "6032 Elm Rd, Sebring, FL 33875",
 ]
 
 
@@ -194,7 +178,6 @@ FG_VACANT_ADDRESSES = [
     "24262 Captain Kidd Blvd, Punta Gorda, FL 33955",
     "3780 Ashland Ave, Pensacola, FL 32534",
     "5518 Davis Street, Fort Pierce, FL 34982",
-    "37 N Waterview Dr, Palm Coast, FL 32137",
     "3700 NW 20th Street, Coconut Creek, FL 33066",
     "85 GLENALBY Place, Ponte Vedra, FL 32081",
     "111 Midway Park Dr, Saint Augustine, FL 32084",
@@ -202,7 +185,6 @@ FG_VACANT_ADDRESSES = [
     "5935 Old Berkley Rd, Auburndale, FL 33823",
     "11180 113th Ave, Seminole, FL 33778",
     "1339 Gallop Drive, Loxahatchee, FL 33470",
-    "23305 June Bug Trl, Brooksville, FL 34602",
     "325 Sheffield Cir W, Palm Harbor, FL 34683",
     "12614 Fenhurst WAY, NAPLES, FL 34120",
     "3433 Leaf Lake Dr, Land O Lakes, FL 34639",
@@ -210,5 +192,4 @@ FG_VACANT_ADDRESSES = [
     "3651 Canopy CIR, NAPLES, FL 34120",
     "2650 SW Windship Way, Stuart, FL 34997",
     "5021 Wesley Dr, Tampa, FL 33647",
-    "6032 Elm Rd, Sebring, FL 33875",
 ]
