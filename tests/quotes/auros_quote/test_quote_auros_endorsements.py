@@ -5,6 +5,16 @@ import pytest
 from playwright.sync_api import Page
 from helpers.result_logger import make_xlsx_appender
 from helpers.test_data import AUROS_STANDARD_ADDRESSES as FL_ADDRESSES
+from helpers.auros_endorsements import (
+    fill_address_endorsement,
+    fill_rented_address_endorsement,
+    fill_occupied_address_endorsement,
+    check_only_endorsement,
+    fill_pool_endorsement,
+    fill_water_limitation,
+    fill_water_excl_named_peril,
+    fill_water_excl_limited,
+)
 
 USERNAME = "icortesmarquez@geovera"
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "auros", "auros_quote_results.xlsx")
@@ -250,83 +260,6 @@ def _finish_quote(page1, address: str, coverage_a: str, scenario: str = "", fiel
 
 
 # ---------------------------------------------------------------------------
-# Endorsement helpers
-# ---------------------------------------------------------------------------
-
-def _fill_address_endorsement(page1, idx: str, num_addrs: int = 1, use_max: bool = False, use_ho2470: bool = False):
-    """ctl00=Additional Interest, ctl01=Additional Insured, ctl06=Additional Residence Occupied.
-    All three use ucEndorsement and have Name + SecondName fields.
-    use_ho2470=True selects ddlNumberOfAddresses_HO_24_70 (max 4) instead of ddlNumberOfAddresses (max 2)."""
-    prefix = f"ctl00_ContentPlaceHolder1_ctl05_rptrEndorsements_{idx}_ucEndorsement"
-
-    page1.locator(f"#{prefix}_chkInclude").check()
-    addr_ddl = f"{prefix}_ddlNumberOfAddresses_HO_24_70" if use_ho2470 else f"{prefix}_ddlNumberOfAddresses"
-    page1.locator(f"#{addr_ddl}").select_option(str(num_addrs))
-
-    for i in range(1, num_addrs + 1):
-        name_i   = ("A" * 29 + str(i)) if use_max else f"ICMTEST{i}"
-        second_i = ("B" * 29 + str(i)) if use_max else f"TESTER{i}"
-        street_i = ("C" * 29 + str(i)) if use_max else f"123 TEST ST {i}"
-        city_i   = ("D" * 29 + str(i)) if use_max else f"ORLANDO{i}"
-        page1.locator(f"#{prefix}_txtName{i}").fill(name_i)
-        page1.locator(f"#{prefix}_txtSecondName{i}").fill(second_i)
-        page1.locator(f"#{prefix}_txtStreet{i}").fill(street_i)
-        page1.locator(f"#{prefix}_txtCity{i}").fill(city_i)
-        page1.locator(f"#{prefix}_ddlState{i}").select_option("FL")
-        page1.locator(f"#{prefix}_txtZip{i}").fill(f"1234{i}")
-        page1.locator(f"#{prefix}_txtZip4_{i}").fill(f"678{i}")
-
-
-def _fill_rented_address_endorsement(page1, num_addrs: int = 1, use_max: bool = False):
-    """ctl04=Additional Residence Rented to Others. No Name/SecondName fields.
-    This endorsement only has HO-24-70 form; ddlNumberOfAddresses_HO_24_70 is always the visible dropdown."""
-    prefix = "ctl00_ContentPlaceHolder1_ctl05_rptrEndorsements_ctl04_ucEndorsement"
-
-    page1.locator(f"#{prefix}_chkInclude").scroll_into_view_if_needed()
-    page1.locator(f"#{prefix}_chkInclude").click()
-    page1.wait_for_timeout(1000)
-    page1.locator(f"#{prefix}_ddlNumberOfAddresses_HO_24_70").select_option(str(num_addrs))
-
-    for i in range(1, num_addrs + 1):
-        street_i = ("C" * 29 + str(i)) if use_max else f"123 TEST ST {i}"
-        city_i   = ("D" * 29 + str(i)) if use_max else f"ORLANDO{i}"
-        page1.locator(f"#{prefix}_txtStreet{i}").fill(street_i)
-        page1.locator(f"#{prefix}_txtCity{i}").fill(city_i)
-        page1.locator(f"#{prefix}_ddlState{i}").select_option("FL")
-        page1.locator(f"#{prefix}_txtZip{i}").fill(f"1234{i}")
-        page1.locator(f"#{prefix}_txtZip4_{i}").fill(f"678{i}")
-
-
-def _check_only_endorsement(page1, idx: str):
-    """ctl02=Ordinance or Law, ctl03=Windstorm Or Hail Exclusion. Checkbox only."""
-    page1.locator(f"#ctl00_ContentPlaceHolder1_ctl05_rptrEndorsements_{idx}_ucEndorsement_chkInclude").check()
-
-
-def _fill_pool_endorsement(page1, limit: int = 10000):
-    """ctl05=Increased Swimming Pool. Uses ucEndorsement2 (not ucEndorsement).
-    limit options: 10000, 15000, 20000, 25000, 30000."""
-    prefix = "ctl00_ContentPlaceHolder1_ctl05_rptrEndorsements_ctl05_ucEndorsement2"
-    page1.locator(f"#{prefix}_chkInclude").check()
-    page1.locator(f"#{prefix}_ddlLimit").select_option(str(limit))
-
-
-def _fill_water_limitation(page1, limit: int = 10000):
-    """Water Damage Limitation. Product checkbox US-WL-20 is pre-checked; just set the limit.
-    limit options: 10000, 20000, 25000, 50000, 75000."""
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_rptrWaterEndorsements_ctl00_ucEndorsement2a_ddlLimit").select_option(str(limit))
-
-
-def _fill_water_excl_named_peril(page1):
-    """Water Damage Exclusion With Named Peril Coverage (US-A-NP). Only ctl00 — ctl01 maps to US-A and conflicts."""
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_rptrWaterEndorsements_ctl01_ucEndorsement1a_rptrProductEndorsements_ctl00_chkInclude").check()
-
-
-def _fill_water_excl_limited(page1):
-    """Water Damage Exclusion And Limited Named Peril Coverage (US-A). Only ctl00 — avoids conflict with US-A-NP."""
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_rptrWaterEndorsements_ctl02_ucEndorsement1a_rptrProductEndorsements_ctl00_chkInclude").check()
-
-
-# ---------------------------------------------------------------------------
 # Tests: one of each
 # ---------------------------------------------------------------------------
 
@@ -396,33 +329,33 @@ def test_auros_one_of_each(page: Page, scenario: str, option) -> None:
         scenario_label = f"{base_label} ({option} Addr{'s' if option > 1 else ''})"
 
     if scenario == "additional_interest":
-        _fill_address_endorsement(page1, "ctl00", num_addrs=option)
+        fill_address_endorsement(page1, "ctl00", num_addrs=option)
     elif scenario == "additional_interest_ho2470":
-        _fill_address_endorsement(page1, "ctl00", num_addrs=option, use_ho2470=True)
+        fill_address_endorsement(page1, "ctl00", num_addrs=option, use_ho2470=True)
     elif scenario == "additional_insured":
-        _fill_address_endorsement(page1, "ctl01", num_addrs=option)
+        fill_address_endorsement(page1, "ctl01", num_addrs=option)
     elif scenario == "additional_insured_ho2470":
-        _fill_address_endorsement(page1, "ctl01", num_addrs=option, use_ho2470=True)
+        fill_address_endorsement(page1, "ctl01", num_addrs=option, use_ho2470=True)
     elif scenario == "ordinance_or_law":
-        _check_only_endorsement(page1, "ctl02")
+        check_only_endorsement(page1, "ctl02")
     elif scenario == "windstorm_hail_exclusion":
-        _check_only_endorsement(page1, "ctl03")
+        check_only_endorsement(page1, "ctl03")
     elif scenario == "additional_rented":
-        _fill_rented_address_endorsement(page1, num_addrs=option)
+        fill_rented_address_endorsement(page1, num_addrs=option)
     elif scenario == "additional_rented_ho2470":
-        _fill_rented_address_endorsement(page1, num_addrs=option)
+        fill_rented_address_endorsement(page1, num_addrs=option)
     elif scenario == "swimming_pool":
-        _fill_pool_endorsement(page1, limit=option)
+        result = fill_pool_endorsement(page1, limit=option)
     elif scenario == "additional_occupied":
-        _fill_address_endorsement(page1, "ctl06", num_addrs=option)
+        fill_occupied_address_endorsement(page1, num_addrs=option)
     elif scenario == "additional_occupied_ho2470":
-        _fill_address_endorsement(page1, "ctl06", num_addrs=option, use_ho2470=True)
+        fill_occupied_address_endorsement(page1, num_addrs=option, use_ho2470=True)
     elif scenario == "water_limitation":
-        _fill_water_limitation(page1, limit=option)
+        result = fill_water_limitation(page1, limit=option)
     elif scenario == "water_excl_named_peril":
-        _fill_water_excl_named_peril(page1)
+        fill_water_excl_named_peril(page1)
     elif scenario == "water_excl_limited":
-        _fill_water_excl_limited(page1)
+        fill_water_excl_limited(page1)
 
     _finish_quote(page1, address, coverage_a, scenario_label)
 
@@ -437,14 +370,14 @@ def test_auros_all_endorsements(page: Page, use_max: bool) -> None:
     coverage_a = "800,000"
     page1 = _run_to_endorsements_page(page, address, coverage_a)
 
-    _fill_address_endorsement(page1, "ctl00", use_max=use_max)
-    _fill_address_endorsement(page1, "ctl01", use_max=use_max)
-    _check_only_endorsement(page1, "ctl02")
-    _check_only_endorsement(page1, "ctl03")
-    _fill_rented_address_endorsement(page1, use_max=use_max)
-    _fill_pool_endorsement(page1)
-    _fill_address_endorsement(page1, "ctl06", use_max=use_max)
-    _fill_water_limitation(page1)
+    fill_address_endorsement(page1, "ctl00", use_max=use_max)
+    fill_address_endorsement(page1, "ctl01", use_max=use_max)
+    check_only_endorsement(page1, "ctl02")
+    check_only_endorsement(page1, "ctl03")
+    fill_rented_address_endorsement(page1, use_max=use_max)
+    fill_pool_endorsement(page1, limit=None)
+    fill_occupied_address_endorsement(page1, use_max=use_max)
+    fill_water_limitation(page1, limit=None)
 
     scenario = "All Endorsements (Max Length)" if use_max else "All Endorsements"
     field_data = _FIELD_DATA_WITH_NAME if use_max else None
@@ -467,17 +400,17 @@ def test_auros_max_field_length(page: Page, scenario: str) -> None:
     page1 = _run_to_endorsements_page(page, address, coverage_a)
 
     if scenario == "additional_interest":
-        _fill_address_endorsement(page1, "ctl00", num_addrs=2, use_max=True)
+        fill_address_endorsement(page1, "ctl00", num_addrs=2, use_max=True)
         field_data = _FIELD_DATA_WITH_NAME
     elif scenario == "additional_insured":
-        _fill_address_endorsement(page1, "ctl01", num_addrs=2, use_max=True)
+        fill_address_endorsement(page1, "ctl01", num_addrs=2, use_max=True)
         field_data = _FIELD_DATA_WITH_NAME
     elif scenario == "additional_rented":
-        _fill_rented_address_endorsement(page1, num_addrs=2, use_max=True)
+        fill_rented_address_endorsement(page1, num_addrs=2, use_max=True)
         field_data = _FIELD_DATA_NO_NAME
     elif scenario == "additional_occupied":
-        _fill_address_endorsement(page1, "ctl06", num_addrs=2, use_max=True)
-        field_data = _FIELD_DATA_WITH_NAME
+        fill_occupied_address_endorsement(page1, num_addrs=2, use_max=True)
+        field_data = _FIELD_DATA_NO_NAME
     else:
         field_data = None
 

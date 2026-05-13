@@ -35,7 +35,10 @@ def browser_context_args(browser_context_args):
 @pytest.fixture(scope="session")
 def run_dir():
     SCREENSHOTS_ROOT.mkdir(exist_ok=True)
-    run_path = SCREENSHOTS_ROOT / datetime.now().strftime("run_%Y-%m-%d_%H-%M-%S")
+    tag = os.environ.get("RUN_TAG")
+    base = datetime.now().strftime("run_%Y-%m-%d_%H-%M-%S")
+    name = f"{base}_{tag}" if tag else base
+    run_path = SCREENSHOTS_ROOT / name
     run_path.mkdir(exist_ok=True)
     runs = sorted(SCREENSHOTS_ROOT.iterdir(), key=lambda p: p.stat().st_mtime)
     for old in runs[:-MAX_RUNS]:

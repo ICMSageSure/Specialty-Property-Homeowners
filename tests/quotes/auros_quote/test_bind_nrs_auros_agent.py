@@ -4,13 +4,21 @@ import random
 import pytest
 from playwright.sync_api import Page
 from helpers.result_logger import make_xlsx_appender
+from helpers.auros_endorsements import (
+    fill_address_endorsement,
+    fill_rented_address_endorsement,
+    fill_occupied_address_endorsement,
+    check_only_endorsement,
+    fill_pool_endorsement,
+    fill_water_limitation,
+)
 
 USERNAME = os.environ.get("AGENT_USERNAME", "BRK99102").strip()
 _PASSWORDS = {"ATRNRS": "password", "ANNIE-0134": "Password1", "BRK99102": "Password1"}
 PASSWORD = _PASSWORDS[USERNAME]
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "nrs", "nrs_agent_bind_results.xlsx")
 
-EFFECTIVE_DATES = ["05/08/2026", "05/15/2026"]
+EFFECTIVE_DATES = ["05/15/2026", "05/30/2026"]
 
 NRS_USERNAME  = "tsicortesmarquez@geovera.com"
 NRS_WHOLESALER = "HULL001"
@@ -163,7 +171,7 @@ _HEADERS = [
     "Product Type", "Coverage A Limit", "Wholesaler", "Producer Number",
     "Quote Number", "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)",
     "Insured Name", "Binder Number", "Bill To", "Payment Plan",
-    "Effective Date", "Amount Due Now",
+    "Effective Date", "Amount Due Now", "Endorsements",
 ]
 _append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
 
@@ -189,7 +197,6 @@ FL_ADDRESSES = [
     "14688 Indigo Lakes Cir, Naples, FL 34119",
     "3780 Ashland Ave, Pensacola, FL 32534",
     "5518 Davis Street, Fort Pierce, FL 34982",
-    "37 N Waterview Dr, Palm Coast, FL 32137",
     "3700 NW 20th Street, Coconut Creek, FL 33066",
     "85 GLENALBY Place, Ponte Vedra, FL 32081",
     "111 Midway Park Dr, Saint Augustine, FL 32084",
@@ -465,7 +472,8 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
     address = random.choice(FL_ADDRESSES)
     print(f'Address: {address}')
     coverage_a = "800,000"
-    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+    pay_type = "AutoPay" if autopay else "Invoiced"
+    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label} {pay_type}"
 
     page1, wholesaler, producer_code, sub_code = _login_and_open_quote(page)
     snap(page1, "03_welcome")
@@ -525,7 +533,11 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
         if loc.count() > 0:
             loc.check()
     snap(page1, "11_questions")
-    page1.get_by_role("button", name="Submit Quote Request").click(timeout=90000)
+    page1.get_by_role("button", name="Next -->").click()
+    page1.wait_for_timeout(2000)
+    applied_endorsements = _apply_random_endorsements(page1)
+    snap(page1, "11b_endorsements")
+    page1.get_by_role("button", name="Submit Quote Request").click()
     page1.wait_for_timeout(2000)
 
     ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
@@ -549,7 +561,8 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
     _append_result([USERNAME, "", scenario_label, address,
                      ProductName, coverage_a, wholesaler, f"{producer_code}-{sub_code}",
                      QuoteNumber, full_pay, three_pay, four_pay, monthly,
-                     insured_name, BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                     insured_name, BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
+                     "; ".join(applied_endorsements)])
 
 
 # ---------------------------------------------------------------------------
@@ -562,7 +575,8 @@ def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_l
     address = random.choice(FL_ADDRESSES)
     print(f'Address: {address}')
     coverage_a = "800,000"
-    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+    pay_type = "AutoPay" if autopay else "Invoiced"
+    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label} {pay_type}"
     try:
         page1, wholesaler, producer_code, sub_code = _login_and_open_quote(page)
         snap(page1, "03_welcome")
@@ -634,7 +648,11 @@ def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_l
             if loc.count() > 0:
                 loc.check()
         snap(page1, "11_questions")
-        page1.get_by_role("button", name="Submit Quote Request").click(timeout=90000)
+        page1.get_by_role("button", name="Next -->").click()
+        page1.wait_for_timeout(2000)
+        applied_endorsements = _apply_random_endorsements(page1)
+        snap(page1, "11b_endorsements")
+        page1.get_by_role("button", name="Submit Quote Request").click()
         page1.wait_for_timeout(2000)
 
         ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
@@ -660,7 +678,8 @@ def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_l
         _append_result([USERNAME, "", scenario_label, address,
                          ProductName, coverage_a, wholesaler, f"{producer_code}-{sub_code}",
                          QuoteNumber, full_pay, three_pay, four_pay, monthly,
-                         insured_name, BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                         insured_name, BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
+                         "; ".join(applied_endorsements)])
     except Exception:
         raise
 
@@ -702,6 +721,49 @@ def _page_context(page1: Page, test_case: str, stage: str) -> str:
     return "\n".join(lines)
 
 
+def _apply_random_endorsements(page1: Page):
+    """Pick 3-5 endorsements from the non-conflicting pool and apply them.
+    Water exclusions are intentionally excluded — they conflict with water_limitation.
+    Individual failures are logged and skipped so one bad endorsement doesn't fail the bind.
+    Returns a list of human-readable 'name (detail)' strings for logging into xlsx."""
+    ai_addrs   = random.randint(1, 2)
+    aif_addrs  = random.randint(1, 2)
+    rent_addrs = random.randint(1, 2)
+    occ_addrs  = random.randint(1, 2)
+
+    options = [
+        ("additional_interest",      f"{ai_addrs} addr{'s' if ai_addrs > 1 else ''}",
+            lambda: fill_address_endorsement(page1, "ctl00", num_addrs=ai_addrs)),
+        ("additional_insured",       f"{aif_addrs} addr{'s' if aif_addrs > 1 else ''}",
+            lambda: fill_address_endorsement(page1, "ctl01", num_addrs=aif_addrs)),
+        ("ordinance_or_law",         "",
+            lambda: check_only_endorsement(page1, "ctl02")),
+        ("windstorm_hail_exclusion", "",
+            lambda: check_only_endorsement(page1, "ctl03")),
+        ("additional_rented",        f"{rent_addrs} addr{'s' if rent_addrs > 1 else ''}",
+            lambda: fill_rented_address_endorsement(page1, num_addrs=rent_addrs)),
+        ("swimming_pool",            None,
+            lambda: fill_pool_endorsement(page1, limit=None)),
+        ("additional_occupied",      f"{occ_addrs} addr{'s' if occ_addrs > 1 else ''}",
+            lambda: fill_occupied_address_endorsement(page1, num_addrs=occ_addrs)),
+        ("water_limitation",         None,
+            lambda: fill_water_limitation(page1, limit=None)),
+    ]
+
+    applied = []
+    selected = random.sample(options, k=random.randint(3, 5))
+    for name, detail, fn in selected:
+        try:
+            result = fn()
+            if result is not None:
+                detail = f"${result:,}"
+            applied.append(f"{name} ({detail})" if detail else name)
+        except Exception as e:
+            print(f"  [endorsement skip] {name}: {e}")
+    print(f"Applied endorsements ({len(applied)}): {applied}")
+    return applied
+
+
 @pytest.mark.parametrize(
     "test_case,address,eff_date,bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay",
     SPECIFIC_BIND_SCENARIOS,
@@ -712,7 +774,7 @@ def test_bind_nrs_auros_agent_ho3_specific(page: Page, snap, test_case: str, add
                                             pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     coverage_a = "800,000"
     pay_plan_short = {"Full Pay": "Full", "3 Pay": "3Pay", "Monthly": "Monthly"}[pay_plan_label]
-    pay_type_short = "EPay" if autopay else "Inv"
+    pay_type_short = "AutoPay" if autopay else "Invoiced"
     insured_name = f"{test_case} {pay_plan_short} {pay_type_short}"
 
     fallback_pool = [a for a in FL_ADDRESSES if a != address]
@@ -778,7 +840,11 @@ def test_bind_nrs_auros_agent_ho3_specific(page: Page, snap, test_case: str, add
                 if loc.count() > 0:
                     loc.check()
             snap(page1, "11_questions")
-            page1.get_by_role("button", name="Submit Quote Request").click(timeout=90000)
+            page1.get_by_role("button", name="Next -->").click()
+            page1.wait_for_timeout(2000)
+            applied_endorsements = _apply_random_endorsements(page1)
+            snap(page1, "11b_endorsements")
+            page1.get_by_role("button", name="Submit Quote Request").click()
             page1.wait_for_timeout(2000)
 
             ineligible_msgs = page1.get_by_text(re.compile(r"ineligible", re.IGNORECASE))
@@ -806,7 +872,8 @@ def test_bind_nrs_auros_agent_ho3_specific(page: Page, snap, test_case: str, add
             _append_result([USERNAME, test_case, scenario_label, attempt_addr,
                              ProductName, coverage_a, "", "",
                              QuoteNumber, full_pay, three_pay, four_pay, monthly,
-                             insured_name, BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                             insured_name, BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
+                             "; ".join(applied_endorsements)])
             return  # success
 
         except _AddressIneligible as exc:

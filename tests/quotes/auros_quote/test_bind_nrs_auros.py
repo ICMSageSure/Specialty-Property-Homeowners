@@ -4,6 +4,14 @@ import random
 import pytest
 from playwright.sync_api import Page
 from helpers.result_logger import make_xlsx_appender
+from helpers.auros_endorsements import (
+    fill_address_endorsement,
+    fill_rented_address_endorsement,
+    fill_occupied_address_endorsement,
+    check_only_endorsement,
+    fill_pool_endorsement,
+    fill_water_limitation,
+)
 
 USERNAME = os.environ.get("AUROS_USERNAME", "tsicortesmarquez@geovera.com")
 WHOLESALER = "HULL001"
@@ -121,13 +129,13 @@ NRS_TEST_SCENARIOS = [
 
 
 _HEADERS = [
-    "User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit",
+    "User Name", "Address", "Test Scenario", "Product Type", "Coverage A Limit", "Deductible",
     "Wholesaler", "Producer Number",
     "Quote Number", "Quote Expiration", "Dwelling (Cov A)", "Total Annual Premium",
     "Full Pay", "3 Pay (1st Install)", "4 Pay (1st Install)", "Monthly (1st Install)",
     "Name (max 30)", "Second Name (max 30)", "Street (max 30)", "City (max 30)",
     "Zip (max 5)", "Zip+4 (max 4)", "Binder Number", "Bill To", "Payment Plan",
-    "Effective Date", "Amount Due Now",
+    "Effective Date", "Amount Due Now", "Endorsements Applied",
 ]
 _append_result = make_xlsx_appender(RESULTS_FILE, _HEADERS)
 
@@ -257,8 +265,23 @@ def _fill_property_screens(page1: Page):
 def _fill_applicant(page1: Page, insured_name: str):
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlPolicyOwnerType").select_option("Individual")
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName").fill(insured_name)
-    page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName").fill("TESTER")
+
+    first_field = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtFirstName")
+    last_field  = page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtLastName")
+    try:
+        max_first = int(first_field.get_attribute("maxlength") or "20")
+    except (TypeError, ValueError):
+        max_first = 20
+    if len(insured_name) <= max_first:
+        first_name, last_name = insured_name, "TESTER"
+    else:
+        cut = insured_name.rfind(" ", 0, max_first + 1)
+        if cut == -1:
+            first_name, last_name = insured_name[:max_first], insured_name[max_first:]
+        else:
+            first_name, last_name = insured_name[:cut], insured_name[cut + 1:]
+    first_field.fill(first_name)
+    last_field.fill(last_name)
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").click()
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBMonth").press_sequentially("01")
     page1.locator("#ctl00_ContentPlaceHolder1_ctl05_txtDOBDay").press_sequentially("01")
@@ -396,6 +419,76 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
     return BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow
 
 
+def _maybe_change_deductible(page1: Page) -> str:
+    """Randomly decide whether to edit the deductible. If yes, pick a non-default value (skipping $5,000),
+    submit, and wait for the postback to re-render the quote details. Returns the final deductible label.
+    Caller is responsible for re-reading premium/payment values after a change."""
+    DEFAULT_LABEL = "$5,000"
+    NON_DEFAULT = [
+        ("F", "$7,500"),
+        ("G", "$10,000"),
+        ("H", "$15,000"),
+        ("M", "$20,000"),
+        ("N", "$25,000"),
+        ("P", "$50,000"),
+    ]
+    if random.choice([True, False]):
+        print(f"Deductible: keeping default {DEFAULT_LABEL}")
+        return DEFAULT_LABEL
+    val, label = random.choice(NON_DEFAULT)
+    print(f"Deductible: editing to {label}")
+    page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_btnEditQuote1Deductible").click()
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_ddlQuote1Deductible", timeout=10000)
+    page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_ddlQuote1Deductible").select_option(val)
+    page1.locator("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_btnSubmitQuote1Deductible").click()
+    page1.wait_for_load_state("networkidle")
+    page1.wait_for_selector("#ctl00_ContentPlaceHolder1_ucQuoteDetailMultiCo1_lblQuote1Number", timeout=30000)
+    page1.wait_for_timeout(2000)
+    return label
+
+
+def _apply_random_endorsements(page1: Page):
+    """Pick 3-5 endorsements from the non-conflicting pool and apply them.
+    Water exclusions are intentionally excluded — they conflict with water_limitation.
+    Individual failures are logged and skipped so one bad endorsement doesn't fail the bind.
+    Returns a list of human-readable 'name (detail)' strings for logging into xlsx."""
+    ai_addrs   = random.randint(1, 2)
+    aif_addrs  = random.randint(1, 2)
+    rent_addrs = random.randint(1, 2)
+    occ_addrs  = random.randint(1, 2)
+
+    options = [
+        ("additional_interest",      f"{ai_addrs} addr{'s' if ai_addrs > 1 else ''}",
+            lambda: fill_address_endorsement(page1, "ctl00", num_addrs=ai_addrs)),
+        ("additional_insured",       f"{aif_addrs} addr{'s' if aif_addrs > 1 else ''}",
+            lambda: fill_address_endorsement(page1, "ctl01", num_addrs=aif_addrs)),
+        ("ordinance_or_law",         "",
+            lambda: check_only_endorsement(page1, "ctl02")),
+        ("windstorm_hail_exclusion", "",
+            lambda: check_only_endorsement(page1, "ctl03")),
+        ("additional_rented",        f"{rent_addrs} addr{'s' if rent_addrs > 1 else ''}",
+            lambda: fill_rented_address_endorsement(page1, num_addrs=rent_addrs)),
+        ("swimming_pool",            None,
+            lambda: fill_pool_endorsement(page1, limit=None)),
+        ("additional_occupied",      f"{occ_addrs} addr{'s' if occ_addrs > 1 else ''}",
+            lambda: fill_occupied_address_endorsement(page1, num_addrs=occ_addrs)),
+        ("water_limitation",         None,
+            lambda: fill_water_limitation(page1, limit=None)),
+    ]
+    selected = random.sample(options, random.randint(3, 5))
+    applied = []
+    for name, detail, fn in selected:
+        try:
+            result = fn()
+            if result is not None:
+                detail = f"${result:,}"
+            applied.append(f"{name} ({detail})" if detail else name)
+        except Exception as e:
+            print(f"  [endorsement skip] {name}: {e}")
+    print(f"Applied endorsements ({len(applied)}): {applied}")
+    return applied
+
+
 # ---------------------------------------------------------------------------
 # NRS Auros HO-3 — Quote to Bind
 # ---------------------------------------------------------------------------
@@ -406,7 +499,8 @@ def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: s
                              producer_code: str, sub_code: str) -> None:
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
-    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+    pay_type = "AutoPay" if autopay else "Invoiced"
+    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label} {pay_type}"
 
     page1 = _login_and_open_quote(page, producer_code, sub_code)
     snap(page1, "03_welcome")
@@ -461,6 +555,10 @@ def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: s
         if loc.count() > 0:
             loc.check()
     snap(page1, "11_questions")
+    page1.get_by_role("button", name="Next -->").click()
+    page1.wait_for_timeout(2000)
+    applied_endorsements = _apply_random_endorsements(page1)
+    snap(page1, "11b_endorsements")
     page1.get_by_role("button", name="Submit Quote Request").click()
     page1.wait_for_timeout(2000)
 
@@ -475,6 +573,10 @@ def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: s
     snap(page1, "12_quote_results")
 
     QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+    deductible = _maybe_change_deductible(page1)
+    if deductible != "$5,000":
+        QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+        snap(page1, "12b_quote_after_deductible")
 
     BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
         page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
@@ -482,10 +584,11 @@ def test_bind_nrs_auros_ho3(page: Page, snap, bill_to_val: str, bill_to_label: s
     snap(page1, "14_binder_detail")
 
     scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
-    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a,
+    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, deductible,
                      WHOLESALER, f"{producer_code}-{sub_code}",
                      QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
+                     "; ".join(applied_endorsements)])
 
 
 # ---------------------------------------------------------------------------
@@ -498,7 +601,8 @@ def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: 
                               producer_code: str, sub_code: str) -> None:
     address = random.choice(FL_ADDRESSES)
     coverage_a = "800,000"
-    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label}" + (" AutoPay" if autopay else "")
+    pay_type = "AutoPay" if autopay else "Invoiced"
+    insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label} {pay_type}"
     page1 = None
     try:
         page1 = _login_and_open_quote(page, producer_code, sub_code)
@@ -567,6 +671,10 @@ def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: 
             if loc.count() > 0:
                 loc.check()
         snap(page1, "11_questions")
+        page1.get_by_role("button", name="Next -->").click()
+        page1.wait_for_timeout(2000)
+        applied_endorsements = _apply_random_endorsements(page1)
+        snap(page1, "11b_endorsements")
         page1.get_by_role("button", name="Submit Quote Request").click()
         page1.wait_for_timeout(2000)
 
@@ -583,6 +691,10 @@ def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: 
         QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
         if not any(x in ProductName for x in ("3T", "HO-3T", "Tenant")):
             pytest.skip(f"Quote returned '{ProductName}' instead of HO-3T for '{address}' – skipping bind")
+        deductible = _maybe_change_deductible(page1)
+        if deductible != "$5,000":
+            QuoteNumber, ProductName, full_pay, three_pay, four_pay, monthly = _collect_quote_info(page1)
+            snap(page1, "12b_quote_after_deductible")
 
         BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow = _bind(
             page1, QuoteNumber, bill_to_val, pay_plan_val, pay_plan_label, autopay
@@ -590,10 +702,11 @@ def test_bind_nrs_auros_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: 
         snap(page1, "14_binder_detail")
 
         scenario_label = f"NRS Auros HO-3T | {bill_to_label} | {insured_name}"
-        _append_result([USERNAME, address, scenario_label, ProductName, coverage_a,
+        _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, deductible,
                          WHOLESALER, f"{producer_code}-{sub_code}",
                          QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                         insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
+                         "; ".join(applied_endorsements)])
     finally:
         if page1 is not None:
             try:
@@ -690,7 +803,8 @@ def test_bind_nrs_auros(page: Page, snap, test_case: str, address: str, eff_date
     snap(page1, "14_binder_detail")
 
     scenario_label = f"NRS {test_case} | {bill_to_label} | {pay_plan_label}"
-    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a,
+    _append_result([USERNAME, address, scenario_label, ProductName, coverage_a, "",
                      WHOLESALER, f"{producer_code}-{sub_code}",
                      QuoteNumber, "", "", full_pay, full_pay, three_pay, four_pay, monthly,
-                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow])
+                     insured_name, "", "", "", "", "", BinderNumber, BillTo, PaymentPlan, EffectiveDate, AmountDueNow,
+                     ""])
