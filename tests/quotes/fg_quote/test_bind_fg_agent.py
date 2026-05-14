@@ -977,9 +977,11 @@ def test_bind_fg_agent_vh2(page: Page, snap, pay_plan_val: str, pay_plan_label: 
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").is_visible():
         page1.locator("#ctl00_ContentPlaceHolder1_ctl05_ddlVacancyReason").select_option("1")
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").is_visible():
-        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").check()
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_0").uncheck()
     if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").is_visible():
-        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").uncheck()
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_1").check()
+    if page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_2").is_visible():
+        page1.locator("#ctl00_ContentPlaceHolder1_ctl05_chkProductType_2").uncheck()
     page1.locator("#txtRequestedHomeownersCoverageALimit").click()
     page1.locator("#txtRequestedHomeownersCoverageALimit").fill(coverage_a)
     snap(page1, "05_coverages")
