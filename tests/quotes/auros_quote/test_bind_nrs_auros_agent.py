@@ -18,9 +18,6 @@ from helpers.auros_endorsements import (
     click_water_update_if_visible,
 )
 
-USERNAME = os.environ.get("AGENT_USERNAME", "BRK99102").strip()
-_PASSWORDS = {"ATRNRS": "password", "ANNIE-0134": "Password1", "BRK99102": "Password1"}
-PASSWORD = _PASSWORDS[USERNAME]
 RESULTS_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "..", "results", "nrs", "nrs_agent_bind_results.xlsx")
 
 _today = date.today()
@@ -30,10 +27,11 @@ EFFECTIVE_DATES = [
     (_today + timedelta(days=30)).strftime("%m/%d/%Y"),
 ]
 
-NRS_USERNAME  = "tsicortesmarquez@geovera.com"
+NRS_USER1      = "icortesmarquez@geovera.com"
+NRS_USER2      = "tsicortesmarquez@geovera.com"
 NRS_WHOLESALER = "HULL001"
-NRS_PRODUCER  = "HLKAREN"
-NRS_SUB_CODE  = "01"
+NRS_PRODUCER   = "133919"
+NRS_SUB_CODE   = ""
 
 BILL_TO_SHORT = {
     "Applicant":       "Applicant",
@@ -117,8 +115,8 @@ BIND_SCENARIOS = [
     ("2", "Alternate Payor", "3", "Monthly",  True),
 ]
 
-# 10 HO3 + 10 HO3T scenarios × 2 logins = 40 total quotes
-HO3_SCENARIOS = [
+# 10 HO3 + 10 HO3T scenarios split evenly across 2 logins = 20 total quotes
+_HO3_ALL = [
     # Applicant — Full Pay no auto, 3 Pay no auto, 4 Pay no auto, Monthly auto
     BIND_SCENARIOS[0], BIND_SCENARIOS[2], BIND_SCENARIOS[4], BIND_SCENARIOS[6],
     # Mortgagee — Full Pay no auto, Full Pay auto, 3 Pay auto, 4 Pay auto
@@ -127,7 +125,7 @@ HO3_SCENARIOS = [
     BIND_SCENARIOS[16], BIND_SCENARIOS[20],
 ]
 
-HO3T_SCENARIOS = [
+_HO3T_ALL = [
     # Applicant — Full Pay auto, 3 Pay auto, 4 Pay auto
     BIND_SCENARIOS[1], BIND_SCENARIOS[3], BIND_SCENARIOS[5],
     # Mortgagee — 3 Pay no auto, 4 Pay no auto, Monthly auto
@@ -135,6 +133,10 @@ HO3T_SCENARIOS = [
     # AltPayor — Full Pay no auto, Full Pay auto, 4 Pay no auto, 4 Pay auto
     BIND_SCENARIOS[14], BIND_SCENARIOS[15], BIND_SCENARIOS[18], BIND_SCENARIOS[19],
 ]
+
+# user1 gets first 5, user2 gets last 5
+HO3_PARAMS  = [(NRS_USER1, *s) for s in _HO3_ALL[:5]]  + [(NRS_USER2, *s) for s in _HO3_ALL[5:]]
+HO3T_PARAMS = [(NRS_USER1, *s) for s in _HO3T_ALL[:5]] + [(NRS_USER2, *s) for s in _HO3T_ALL[5:]]
 
 SPECIFIC_BIND_SCENARIOS = [
     # test_case, address, eff_date, bill_to_val, bill_to_label, pay_plan_val, pay_plan_label, autopay
@@ -230,10 +232,10 @@ def _login_and_open_quote(page: Page):
     return page1, wholesaler, producer_code, sub_code
 
 
-def _login_and_open_quote_nrs(page: Page):
+def _login_and_open_quote_nrs(page: Page, username: str):
     page.goto("https://tst.mygeosource.com/")
     page.get_by_role("textbox", name="Policyholder Email or Agent").click()
-    page.get_by_role("textbox", name="Policyholder Email or Agent").fill(NRS_USERNAME)
+    page.get_by_role("textbox", name="Policyholder Email or Agent").fill(username)
     page.get_by_role("textbox", name="Password").click()
     page.get_by_role("textbox", name="Password").fill(os.environ["INTERNAL_PASSWORD"])
     page.get_by_role("button", name="Log In", exact=True).click()
@@ -459,8 +461,8 @@ def _bind(page1: Page, QuoteNumber: str, bill_to_val: str, pay_plan_val: str, pa
 # NRS Auros HO-3 — Quote to Bind (Agent login)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3_SCENARIOS)
-def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_label: str,
+@pytest.mark.parametrize("username,bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3_PARAMS)
+def test_bind_nrs_auros_agent_ho3(page: Page, snap, username: str, bill_to_val: str, bill_to_label: str,
                                    pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     address = random.choice(FL_ADDRESSES)
     print(f'Address: {address}')
@@ -468,7 +470,7 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
     pay_type = "AutoPay" if autopay else "Invoiced"
     insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label} {pay_type}"
 
-    page1, wholesaler, producer_code, sub_code = _login_and_open_quote(page)
+    page1 = _login_and_open_quote_nrs(page, username)
     snap(page1, "03_welcome")
 
     _enter_address(page1, address)
@@ -550,8 +552,8 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
         snap(page1, "12b_quote_after_deductible")
 
     scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
-    _append_result([USERNAME, "", scenario_label, address,
-                     ProductName, coverage_a, wholesaler, f"{producer_code}-{sub_code}",
+    _append_result([username, "", scenario_label, address,
+                     ProductName, coverage_a, NRS_WHOLESALER, NRS_PRODUCER,
                      QuoteNumber, full_pay, three_pay, four_pay, monthly,
                      insured_name, "Not Bound", "", "", "", "", "",
                      "; ".join(applied_endorsements), deductible])
@@ -568,8 +570,8 @@ def test_bind_nrs_auros_agent_ho3(page: Page, snap, bill_to_val: str, bill_to_la
 # NRS Auros HO-3T — Quote to Bind (Agent login, Occupancy = Tenant Only)
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3T_SCENARIOS)
-def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_label: str,
+@pytest.mark.parametrize("username,bill_to_val,bill_to_label,pay_plan_val,pay_plan_label,autopay", HO3T_PARAMS)
+def test_bind_nrs_auros_agent_ho3t(page: Page, snap, username: str, bill_to_val: str, bill_to_label: str,
                                     pay_plan_val: str, pay_plan_label: str, autopay: bool) -> None:
     address = random.choice(FL_ADDRESSES)
     print(f'Address: {address}')
@@ -577,7 +579,7 @@ def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_l
     pay_type = "AutoPay" if autopay else "Invoiced"
     insured_name = f"NRS {BILL_TO_SHORT[bill_to_label]} {pay_plan_label} {pay_type}"
     try:
-        page1, wholesaler, producer_code, sub_code = _login_and_open_quote(page)
+        page1 = _login_and_open_quote_nrs(page, username)
         snap(page1, "03_welcome")
 
         _enter_address(page1, address)
@@ -673,8 +675,8 @@ def test_bind_nrs_auros_agent_ho3t(page: Page, snap, bill_to_val: str, bill_to_l
             snap(page1, "12b_quote_after_deductible")
 
         scenario_label = f"NRS Auros HO-3T | {bill_to_label} | {insured_name}"
-        _append_result([USERNAME, "", scenario_label, address,
-                         ProductName, coverage_a, wholesaler, f"{producer_code}-{sub_code}",
+        _append_result([username, "", scenario_label, address,
+                         ProductName, coverage_a, NRS_WHOLESALER, NRS_PRODUCER,
                          QuoteNumber, full_pay, three_pay, four_pay, monthly,
                          insured_name, "Not Bound", "", "", "", "", "",
                          "; ".join(applied_endorsements), deductible])
@@ -909,7 +911,7 @@ def test_bind_nrs_auros_agent_ho3_specific(page: Page, snap, test_case: str, add
                 snap(page1, "12b_quote_after_deductible")
 
             scenario_label = f"NRS Auros HO-3 | {bill_to_label} | {insured_name}"
-            _append_result([USERNAME, test_case, scenario_label, attempt_addr,
+            _append_result([NRS_USER1, test_case, scenario_label, attempt_addr,
                              ProductName, coverage_a, "", "",
                              QuoteNumber, full_pay, three_pay, four_pay, monthly,
                              insured_name, "Not Bound", "", "", "", "", "",
