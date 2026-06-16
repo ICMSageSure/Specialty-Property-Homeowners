@@ -6,7 +6,7 @@
 /CLAUDE.md
 /.vscode
 /.claude
-
+/.logs
 
 # Python bytecode — never commit these
 __pycache__/
